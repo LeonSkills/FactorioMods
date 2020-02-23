@@ -217,9 +217,9 @@ def _update_mod(mod_name_folder, mod_folder, mod_data):
             mod_info = json.load(info)
         mod_info["version"] = version
         mod_info["author"] = "LeonSkills"
-        mod_info["contact"] = "https://www.reddit.com/message/compose?to=LeonSkills&subject=RsFactorio" \
+        mod_info["contact"] = "https://www.reddit.com/message/compose?to=LeonSkills&subject=FactorioMod" \
                               + mod_name + "_" + version
-        mod_info["homepage"] = "https://github.com/LeonSkills/FactorioMods/tree/master/" + mod_name_folder
+        mod_info["homepage"] = "https://github.com/LeonSkills/FactorioMods/tree/master/mods/" + mod_name_folder
         mod_info["factorio_version"] = "0.18"
 
         mod_info["dependencies"] = mod_data[mod_name_folder]["extern_dependencies"] if \
