@@ -1,0 +1,10 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2020-02-23
+  Major Features:
+    - Added entity that can be placed on other entities to read information from them
+  Features:
+    - Added reading out of current health
+    - Added reading out of number of empty stacks of container
+  Locale:
+    - Added English (EN) locale

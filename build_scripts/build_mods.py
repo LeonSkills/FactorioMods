@@ -219,8 +219,8 @@ def _update_mod(mod_name_folder, mod_folder, mod_data):
         mod_info["author"] = "LeonSkills"
         mod_info["contact"] = "https://www.reddit.com/message/compose?to=LeonSkills&subject=RsFactorio" \
                               + mod_name + "_" + version
-        mod_info["homepage"] = "https://github.com/LeonSkills/RsFactorio/tree/master/" + mod_name_folder
-        mod_info["factorio_version"] = "0.17"
+        mod_info["homepage"] = "https://github.com/LeonSkills/FactorioMods/tree/master/" + mod_name_folder
+        mod_info["factorio_version"] = "0.18"
 
         mod_info["dependencies"] = mod_data[mod_name_folder]["extern_dependencies"] if \
             "extern_dependencies" in mod_data[mod_name_folder] else []
@@ -234,7 +234,7 @@ def _update_mod(mod_name_folder, mod_folder, mod_data):
                 mod_info["dependencies"].append("?" + mod_data[required_mod]["mod_name"] +
                                                 " >= " + mod_data[required_mod]["version"])
 
-        mod_info["dependencies"].append("base >= 0.17")
+        mod_info["dependencies"].append("base >= 0.18.6")
 
         with open(factorio_info_file, "w") as f:
             json.dump(mod_info, f, indent=2)
