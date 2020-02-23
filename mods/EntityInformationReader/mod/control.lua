@@ -2,14 +2,6 @@ require("scripts/gui")
 local common = require("scripts/common")
 local container = require("scripts/container")
 
-local function get_combinator(chest)
-  for _, ent in pairs(chest.circuit_connected_entities.red) do
-    if ent.name == "entity-information-reader" then
-      return ent
-    end
-  end
-end
-
 local function on_built(event)
   local entity = event.entity or event.created_entity or event.destination
   if not entity or not entity.valid then

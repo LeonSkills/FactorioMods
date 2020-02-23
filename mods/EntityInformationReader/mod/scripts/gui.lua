@@ -9,11 +9,6 @@ local function create_unsupported_type_gui(flow)
   flow.add{type="label", caption={"eir-gui.unknown-type"}}
 end
 
-local function create_common_gui(control_behavior, tbl)
-  tbl.add{type="label", caption={"eir-gui.cur-health"}}
-  tbl.add{type="choose-elem-button", name="entity_info_choose_button_1", elem_type="signal", signal=control_behavior.get_signal(1).signal}
-end
-
 local function create_combinator_gui(player, combinator)
   player.opened = nil
   local frame = player.gui.screen.add{type="frame", name="entity_info_element", direction="vertical"}
@@ -68,11 +63,5 @@ local function on_gui_elem_changed(event)
 end
 
 script.on_event(defines.events.on_gui_opened, on_gui_opened)
-
--- script.on_event(defines.events.on_mod_item_opened, open_signal_gui)
---
 script.on_event(defines.events.on_gui_closed, on_gui_closed)
---
--- script.on_event(defines.events.on_gui_value_changed, on_gui_value_changed)
--- script.on_event(defines.events.on_gui_text_changed, on_gui_text_changed)
 script.on_event(defines.events.on_gui_elem_changed, on_gui_elem_changed)
