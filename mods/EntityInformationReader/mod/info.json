@@ -1,0 +1,13 @@
+{
+  "name": "EntityInformationReader",
+  "version": "0.0.2",
+  "title": "Entity information reader",
+  "author": "LeonSkills",
+  "contact": "",
+  "homepage": "",
+  "factorio_version": "0.18",
+  "dependencies": [
+    "base >= 0.18.7"
+  ],
+  "description": "A information sticker you can place on entities and connect to the circuit network to read out information of that entity. (Assembler status, train info, extra info of chest contents, etc.). WARNING: Some info is computational heavy to get, use with care."
+}
