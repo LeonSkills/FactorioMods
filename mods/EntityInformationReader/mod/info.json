@@ -9,5 +9,5 @@
   "dependencies": [
     "base >= 0.18.7"
   ],
-  "description": "[WIP} Entity that provides information about entities and makes it available to the circuit network (assembler status, train info, extra info of chest contents, etc.). WARNING: Some info is computational heavy to get, use with care."
+  "description": "[WIP] Entity that provides information about entities and makes it available to the circuit network (assembler status, train info, extra info of chest contents, etc.). WARNING: Some info is computational heavy to get, use with care."
 }
