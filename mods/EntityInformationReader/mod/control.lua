@@ -1,36 +1,32 @@
 require("scripts/gui")
 local common = require("scripts/common")
 local container = require("scripts/container")
+local crafting_machine = require("scripts/crafting-machine")
 
 local function on_built(event)
   local entity = event.entity or event.created_entity or event.destination
   if not entity or not entity.valid then
     return
   end
-  if entity and entity.valid and entity.name == "entity-information-reader" then
+  if entity.name == "entity-information-reader" then
     entity.health = 0
     local entities = entity.surface.find_entities_filtered{position=entity.position, name="entity-information-reader", type="construction-robot", invert=true}
     local connected_entity
     if #entities > 0 then
       connected_entity = entities[1]
       local sprite_id = rendering.draw_sprite{sprite="entity/entity-information-reader", target=entity, surface=entity.surface, x_scale=0.4, y_scale=0.4}
-      table.insert(global.combinators, {combinator=entity, entity=connected_entity, location=entity.position, sprite=sprite_id})
+      global.combinators[entity.position.x..","..entity.position.y] = {combinator=entity, entity=connected_entity, location=entity.position, sprite=sprite_id}
       entity.get_control_behavior().enabled = true
     else
-      entity.get_control_behavior().enabled = false
-      global.lonely_combinators[entity.position.x..","..entity.position.y] = entity
-      return
+      -- entity.get_control_behavior().enabled = false
     end
-  else
-    local combinator = global.lonely_combinators[entity.position.x..","..entity.position.y]
-    if combinator then
+  elseif entity.type ~= "entity-ghost" then
+    local combinators = entity.surface.find_entities_filtered{area=entity.bounding_box, name="entity-information-reader"}
+    for _, combinator in pairs(combinators) do
       if combinator.valid then
         local sprite_id = rendering.draw_sprite{sprite="entity/entity-information-reader", target=combinator, surface=entity.surface, x_scale=0.4, y_scale=0.4}
-        global.lonely_combinators[entity.position.x..","..entity.position.y] = nil
-        table.insert(global.combinators, {combinator=combinator, entity=entity, location=entity.position, sprite=sprite_id})
+        global.combinators[combinator.position.x..","..combinator.position.y] = {combinator=combinator, entity=entity, location=combinator.position, sprite=sprite_id}
         combinator.get_control_behavior().enabled = true
-      else
-        global.lonely_combinators[entity.position.x..","..entity.position.y] = nil
       end
     end
   end
@@ -40,9 +36,6 @@ end
 local function on_tick()
   if not global.combinators then
     global.combinators = {}
-  end
-  if not global.lonely_combinators then
-    global.lonely_combinators = {}
   end
   for i, tbl in pairs(global.combinators) do
     if tbl.valid == false then
@@ -61,7 +54,6 @@ local function on_tick()
       end
       global.combinators[i] = nil
       tbl.combinator.get_control_behavior().enabled = false
-      global.lonely_combinators[tbl.combinator.position.x..","..tbl.combinator.position.y] = tbl.combinator
     else
       local cb = tbl.combinator.get_control_behavior()
       if cb.enabled then
@@ -72,10 +64,17 @@ local function on_tick()
           end
         end
         local signals = common.calc_signals(tbl.entity, indices)
+        local second_signals = {}
         if tbl.entity.type == "container" or tbl.entity.type == "logistic-container" or tbl.entity.type == "infinity-container" then
+          second_signals = container.calc_signals(tbl.entity, indices)
           for k, v in pairs(container.calc_signals(tbl.entity, indices)) do
             signals[k] = v
           end
+        elseif tbl.entity.type == "furnace" or tbl.entity.type == "assembling-machine" or tbl.entity.type == "rocket-silo" then
+          second_signals = crafting_machine.calc_signals(tbl.entity, indices)
+        end
+        for k, v in pairs(second_signals) do
+          signals[k] = v
         end
         for index, count in pairs(signals) do
           local next_signal

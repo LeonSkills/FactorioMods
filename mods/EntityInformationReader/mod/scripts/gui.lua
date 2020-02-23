@@ -1,5 +1,6 @@
-local container = require("scripts/container")
 local common = require("scripts/common")
+local container = require("scripts/container")
+local crafting_machine = require("scripts/crafting-machine")
 
 local function create_nothing_there_gui(flow)
   flow.add{type="label", caption={"eir-gui.nothing-there"}}
@@ -28,6 +29,10 @@ local function create_combinator_gui(player, combinator)
     common.create_gui(cb, table)
     if entity.type == "container" or entity.type == "logistic-container" or entity.type == "infinity-container" then
       container.create_gui(cb, table)
+    elseif entity.type == "furnace" or entity.type == "assembling-machine" then
+      crafting_machine.create_gui(cb, table)
+    elseif entity.type == "rocket-silo" then
+      crafting_machine.create_gui(cb, table)
     else
       create_unsupported_type_gui(flow)
     end
