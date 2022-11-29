@@ -1,0 +1,60 @@
+---------------------------------------------------------------------------------------------------
+Version: 1.1.1
+Date: 2022-29-11
+  Bugfixes:
+    - Fixed crash when setting train lengths
+---------------------------------------------------------------------------------------------------
+Version: 1.1.0
+Date: 2021-01-13
+  Info:
+    - Updated for Factorio 1.1.0
+---------------------------------------------------------------------------------------------------
+Version: 0.1.7
+Date: 2020-02-06
+  Locale:
+    - Added Russian (RU) locale
+    - Removed text from locale that planner can only be right clicked in inventory
+---------------------------------------------------------------------------------------------------
+Version: 0.1.6
+Date: 2020-02-04
+  Bugfixes:
+    - Fixed bug where GUI couldn't be opened
+---------------------------------------------------------------------------------------------------
+Version: 0.1.5
+Date: 2020-01-21
+  Info:
+    - Updated for Factorio 0.18.0
+---------------------------------------------------------------------------------------------------
+Version: 0.1.4
+Date: 2020-01-04
+  Bugfixes:
+    - Fixed a bug where it incorrectly removed some chain signals due to the optimization done in 0.1.1
+---------------------------------------------------------------------------------------------------
+Version: 0.1.3
+Date: 2019-12-31
+  Bugfixes:
+    - Fixed a bug where rail ghosts were removed with the planner
+---------------------------------------------------------------------------------------------------
+Version: 0.1.2
+Date: 2019-12-28
+  Changes:
+    - Changed being able to pick entities in the planner to being able to pick items instead.
+  Bugfixes:
+    - Fixed a crash when trying to use signals that have no items to place
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+Date: 2019-12-28
+  Changes:
+    - Added better support for modded rail signals. Mainly for Realistic_Electric_Trains, but should affect other modded signals too
+    - Removed possibility for two consecutive chain signals to be placed
+  Locale:
+    - Added German (DE) locale
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2019-12-27
+  Info:
+    - Initial release
+
+  Locale:
+    - Added Dutch (NL) locale
+    - Added English (EN) locale

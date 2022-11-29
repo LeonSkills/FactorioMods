@@ -1,0 +1,11 @@
+{
+    "name": "RailSignalPlanner",
+    "version": "1.1.1",
+    "title": "Rail Signal Planner",
+    "author": "LeonSkills",
+    "contact": "",
+    "homepage": "",
+    "factorio_version": "1.1",
+    "dependencies": ["base >= 1.1"],
+    "description": "Provides a tool to automatically place chain and rail signals on rails and intersections."
+}
