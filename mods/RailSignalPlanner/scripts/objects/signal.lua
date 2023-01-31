@@ -4,11 +4,6 @@ Signal = {}
 Signal.all_signals = {}
 
 function Signal:new(position, direction, surface, player, length, rail)
-  assert(position)
-  assert(direction)
-  assert(surface)
-  assert(player)
-  assert(rail)
   local id = create_unique_id(position, direction)
   local signal = Signal.all_signals[id]
   if signal then
@@ -294,7 +289,6 @@ end
 function Signal:clear_exit(max_train_length, visited_signals)
   -- Remove all rail signals in front of the exit for length <train_length>
   max_train_length = max_train_length or self.train_length
-  assert(self.is_exit)
   local current_signal = self
   local distance_left = max_train_length
   while distance_left > 0 do
@@ -389,7 +383,7 @@ function Signal:find_exit()
     if current_signal.is_exit then return last_known_signal or current_signal end
     if #current_signal.signals_back > 1 then
       self.player.print("Long stretch contains a branch, should not happen. Please report to mod author", {1, 0, 0})
-      return last_known_signal or current_signal end
+      return last_known_signal or current_signal
     end
     if current_signal.current_signal then
       last_known_signal = current_signal

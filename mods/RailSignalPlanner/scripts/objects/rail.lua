@@ -5,8 +5,6 @@ Rail = {}
 Rail.all_rails = {}
 
 function Rail:new(entity, player)
-  assert(entity)
-  assert(player)
   local id = entity_id(entity)
   local rail = Rail.all_rails[id]
   if rail then

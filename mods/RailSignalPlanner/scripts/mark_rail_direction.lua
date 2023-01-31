@@ -48,7 +48,6 @@ local function debug()
 end
 
 local function mark_rail_direction(player, original_rail, debug_rails)
-  assert(original_rail)
   -- Mark for each rail if signals should be placed on the right, the left, or both
   local success = mark_rails(player, original_rail)
   if debug_rails then

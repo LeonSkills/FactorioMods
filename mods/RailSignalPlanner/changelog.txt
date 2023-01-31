@@ -8,7 +8,7 @@ Date: 2023-31-01
   Features:
     - Added option to disallow rails to be built if the rail direction is conflicting
     - Added option to only allow unidirectional rails
-    - Added option to remove construction jobs for signals (right click + drag) and order to deconstruct all signals (shift + right click + drag)
+    - Added option to remove construction job for signals (right click + drag) and order to deconstruct all signals (shift + right click + drag)
 
   Changes:
     - Automatically check for rails outside of the selection if they should be included in the calculation
@@ -21,6 +21,10 @@ Date: 2023-31-01
 
   Graphics:
     - Updated the mod icon to use new rail signal graphics
+
+  Locale
+    - Added only the mod title/item name in Finnish. Because I love that word. Full translation might follow soon
+    - German and ru locales have to be updated
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.1
 Date: 2022-29-11

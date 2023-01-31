@@ -62,7 +62,7 @@ local function build_signals(rails, player, using_rail_planner, invert_bidirecti
   -- place signals
   place_signals()
   -- change signals, checking overlaps
-  change_signals(player, true)
+  change_signals(player)
   -- restore signals and rails based on their original signal
   ghostify(player, using_rail_planner)
 
