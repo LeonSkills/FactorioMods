@@ -111,14 +111,33 @@ function toggle_signal_ui(player_index)
   local i = 0
   flow.style.horizontal_align = "center"
   local tabbed_pane = flow.add{type="tabbed-pane"}
+  tabbed_pane.style.minimal_width=220
 
   for _, rail_planner in pairs(rail_planners) do
     i = i + 1
-    local tab = tabbed_pane.add{type="tab", name=rail_planner.name .. "_planner_button", tooltip = rail_planner.localised_name}
-    local style = tab.style
-    style.width = 45
-    style.horizontal_align = "center"
-    tab.add{type="sprite", sprite="item/" .. rail_planner.name, ignored_by_interaction=true}
+    local tab = tabbed_pane.add{type="tab", name=rail_planner.name .. "_planner_button", tooltip = rail_planner.localised_name, resize_to_sprite=true}
+    tab.style.horizontally_squashable = false
+    tab.style.vertically_squashable = false
+    tab.style.horizontally_stretchable = false
+    tab.style.vertically_stretchable = false
+    tab.style.left_padding = 0
+    tab.style.right_padding = 0
+    tab.style.top_padding = 0
+    tab.style.bottom_padding = 0
+    tab.style.height = 40
+    tab.style.width = 50
+    local tab_frame = tab.add{type="flow", ignored_by_interaction=true}
+    tab_frame.style.width = 50
+    tab_frame.style.height = 40
+    tab_frame.style.horizontal_align = "center"
+    tab_frame.style.vertical_align = "center"
+    tab_frame.style.horizontally_squashable = false
+    tab_frame.style.vertically_squashable = false
+    tab_frame.style.horizontally_stretchable = false
+    tab_frame.style.vertically_stretchable = false
+    local sprite = tab_frame.add{type="sprite", sprite="item/" .. rail_planner.name, ignored_by_interaction=true}
+    sprite.style.vertical_align = "center"
+    sprite.style.horizontal_align = "center"
     local tab_flow = tabbed_pane.add{type="flow", direction="vertical"}
     tabbed_pane.add_tab(tab, tab_flow)
     if rail_planner.name == current_opened_rail then
