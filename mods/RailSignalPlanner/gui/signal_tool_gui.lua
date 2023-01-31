@@ -52,10 +52,34 @@ function on_gui_click(event)
   if rail_planner and game.item_prototypes[rail_planner] and game.item_prototypes[rail_planner].type == "rail-planner" then
     set_settings({["selected_rail_planner"] = rail_planner}, player)
     toggle_signal_ui(event.player_index)
-  elseif event.element.name ~= "rsp_button" then
-    return
+  elseif event.element.name == "rsp_button" or event.element.name == "rsp_close_setting_interface" then
+    toggle_signal_ui(event.player_index)
   end
-  toggle_signal_ui(event.player_index)
+end
+
+function add_titlebar(gui, caption, close_button_name)
+  local titlebar = gui.add{type = "flow"}
+  titlebar.add{
+    type = "label",
+    style = "frame_title",
+    caption = caption,
+    ignored_by_interaction = true,
+  }
+  local filler = titlebar.add{
+    type = "empty-widget",
+    ignored_by_interaction = true,
+  }
+  filler.style.height = 24
+  filler.style.horizontally_stretchable = true
+  titlebar.add{
+    type = "sprite-button",
+    name = close_button_name,
+    style = "frame_action_button",
+    sprite = "utility/close_white",
+    hovered_sprite = "utility/close_black",
+    clicked_sprite = "utility/close_black",
+    tooltip = {"gui.close-instruction"},
+  }
 end
 
 function toggle_signal_ui(player_index)
@@ -76,8 +100,9 @@ function toggle_signal_ui(player_index)
     player.opened.destroy()
   end
 
-  local frame = gui.left.add{type="frame", name="rail_signal_gui", caption={"rsp-gui.rail-signal-planner"}}
+  local frame = gui.left.add{type="frame", name="rail_signal_gui"}
   local flow = frame.add{type="flow", name="rail_signal_flow", direction="vertical"}
+  add_titlebar(flow, {"rsp-gui.rail-signal-planner"}, "rsp_close_setting_interface")
   local toggle_table = flow.add{type="table", name="toggle_table", column_count = 2, vertical_screening = true}
 
   local place_signals_with_rail_planner_label = {"rsp-gui.place-signals-with-rail-planner-tooltip"}

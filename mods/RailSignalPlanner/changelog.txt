@@ -2,6 +2,7 @@
 Version: 1.2.1
 Date: 2023-31-01
   Gui:
+    - Added a close button
     - Updated the settings interface to look better on smaller screens
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.0
