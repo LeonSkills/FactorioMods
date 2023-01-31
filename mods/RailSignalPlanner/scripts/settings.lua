@@ -1,8 +1,18 @@
 local default_settings = {
+  ["selected_rail_planner"] = "rail",
+  ["place_signals_with_rail_planner"] = false,
+  ["force_unidirectional"] = false,
+  ["force_build_rails"] = true,
+  ["water-way"] = {
+    ["rail_signal_item"] = "buoy",
+    ["rail_chain_signal_item"] = "chain_buoy",
+    ["train_length"] = 20,
+    ["rail_signal_distance"] = 20
+  },
   ["rail_signal_item"] = "rail-signal",
   ["rail_chain_signal_item"] = "rail-chain-signal",
-  ["train_length"] = 13,
-  ["rail_signal_distance"] = 8
+  ["train_length"] = 20,
+  ["rail_signal_distance"] = 20,
 }
 
 function set_default_settings(player_index)
@@ -13,81 +23,80 @@ function set_default_settings(player_index)
   end
 end
 
-
 local function get_flow(player)
-  if player and player.valid and player.gui.screen.rail_signal_gui then
-    return player.gui.screen.rail_signal_gui.rail_signal_flow
+  if player and player.valid and player.gui.left.rail_signal_gui then
+    return player.gui.left.rail_signal_gui.rail_signal_flow
   end
 end
 
-
-function set_settings(settings, player)
+function set_settings(settings, player, additional_key)
   local global_settings = global.signal_settings[player.index]
+  if additional_key then
+    global_settings = global_settings[additional_key]
+  end
   local gui = get_flow(player)
   for setting, value in pairs(settings) do
     if setting == "rail_signal_item" then
-      local item = game.item_prototypes[value]
-      if not item then
+      local entity = game.entity_prototypes[value]
+      if not entity then
         player.print({"rail-signal-tool.not-an-item", value}, {255, 100, 100})
         player.play_sound{path="utility/cannot_build"}
         if gui then
-          gui.rail_signal_table.rail_signal_item.elem_value = get_setting("rail_signal_item", player)
+          gui.rail_signal_table.rail_signal_item.elem_value = get_setting("rail_signal_item", player, additional_key)
         end
-      elseif not item.place_result then
-        player.print({"rail-signal-tool.cant-place", item.localised_name}, {255, 100, 100})
+      elseif #entity.items_to_place_this == 0 then
+        player.print({"rail-signal-tool.cant-place", entity.localised_name}, {255, 100, 100})
         player.play_sound{path="utility/cannot_build"}
         if gui then
-          gui.rail_signal_table.rail_signal_item.elem_value = get_setting("rail_signal_item", player)
-        end
-      elseif item.place_result.type ~= "rail-signal" and item.place_result.type ~= "rail-chain-signal" then
-        player.print({"rail-signal-tool.not-a-valid-entity", item.localised_name, {"entity-name.rail-signal"}}, {255, 100, 100})
-        player.play_sound{path="utility/cannot_build"}
-        if gui then
-          gui.rail_signal_table.rail_signal_item.elem_value = get_setting("rail_signal_item", player)
+          gui.rail_signal_table.rail_signal_item.elem_value = get_setting("rail_signal_item", player, additional_key)
         end
       else
         global_settings.rail_signal_item = value
       end
     elseif setting == "rail_chain_signal_item" then
-      local item = game.item_prototypes[value]
-      if not item then
+      local entity = game.entity_prototypes[value]
+      if not entity then
         player.print({"rail-signal-tool.not-an-item", value}, {255, 100, 100})
         player.play_sound{path="utility/cannot_build"}
         if gui then
-          gui.rail_signal_table.rail_chain_signal_item.elem_value = get_setting("rail_chain_signal_item", player)
+          gui.rail_signal_table.rail_chain_signal_item.elem_value = get_setting("rail_chain_signal_item", player, additional_key)
         end
-      elseif not item.place_result then
-        player.print({"rail-signal-tool.cant-place", item.localised_name}, {255, 100, 100})
+      elseif #entity.items_to_place_this == 0 then
+        player.print({"rail-signal-tool.cant-place", entity.localised_name}, {255, 100, 100})
         player.play_sound{path="utility/cannot_build"}
         if gui then
-          gui.rail_signal_table.rail_chain_signal_item.elem_value = get_setting("rail_chain_signal_item", player)
-        end
-      elseif item.place_result.type ~= "rail-signal" and item.place_result.type ~= "rail-chain-signal" then
-        player.print({"rail-signal-tool.not-a-valid-entity", item.localised_name, {"entity-name.rail-signal"}}, {255, 100, 100})
-        player.play_sound{path="utility/cannot_build"}
-        if gui then
-          gui.rail_signal_table.rail_chain_signal_item.elem_value = get_setting("rail_chain_signal_item", player)
+          gui.rail_signal_table.rail_chain_signal_item.elem_value = get_setting("rail_chain_signal_item", player, additional_key)
         end
       else
         global_settings.rail_chain_signal_item = value
       end
-    elseif setting == "train_length" then
-      global_settings.train_length = value
-    elseif setting == "rail_signal_distance" then
-      global_settings.rail_signal_distance = value
+    else
+      global_settings[setting] = value
     end
   end
 end
 
-function get_setting(setting, player)
+function get_setting(setting, player, additional_key)
   if not global.signal_settings then
     global.signal_settings = {}
   end
   if not global.signal_settings[player.index] then
     set_default_settings(player.index)
   end
-  if not global.signal_settings[player.index][setting] then
-    global.signal_settings[player.index][setting] = default_settings[setting]
+  local settings = global.signal_settings[player.index]
+  if additional_key then
+    if not settings[additional_key] then
+      settings[additional_key] = {}
+    end
+    settings = settings[additional_key]
   end
-  return global.signal_settings[player.index][setting]
+  if settings[setting] == nil then
+    if global.signal_settings[player.index][setting] then --legacy
+      settings[setting] = global.signal_settings[player.index][setting]
+      global.signal_settings[player.index][setting] = nil
+    else
+      settings[setting] = default_settings[additional_key] and default_settings[additional_key][setting] or default_settings[setting]
+    end
+  end
+  return settings[setting]
 end

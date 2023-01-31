@@ -1,34 +1,51 @@
+local font_start = "[font=default-semibold][color=255, 230, 192]"
+local font_end = "[/color][/font]"
+local line_start = "\n  •   "
+
 data:extend({
   {
     name = "rail-signal-planner",
     type = "selection-tool",
     order = "c[automated-construction]-s[rail-signal-planner]",
-    alt_selection_color = {127, 255, 0},
     selection_color = {255, 127, 0},
+    alt_selection_color = {127, 255, 0},
+    reverse_selection_color = {0, 127, 255},
+    alt_reverse_selection_color = {0, 255, 127},
     selection_mode = {"any-entity", "same-force"},
     alt_selection_mode = {"any-entity", "same-force"},
     selection_cursor_box_type = "pair",
     alt_selection_cursor_box_type = "pair",
-    icons = {
-      {
-        icon="__RailSignalPlanner__/graphics/icons/rail-signal-planner.png",
-        icon_size = 32
-      },
-      {
-        icon = data.raw["rail-signal"]["rail-signal"].icon,
-        icon_size = data.raw["rail-signal"]["rail-signal"].icon_size,
-        scale = 0.7 * 32 / data.raw["rail-signal"]["rail-signal"].icon_size,
-      }
-    },
-    icon_size = 32,
+    icon =  "__RailSignalPlanner__/graphics/icons/rail-signal-planner.png",
+    icon_size = 64,
     stack_size = 1,
     stackable = false,
     subgroup = "tool",
     show_in_library = true,
     flags = {"mod-openable", "spawnable"},
-    entity_type_filters = {"straight-rail", "curved-rail", "rail-signal", "rail-chain-signal"},
-    alt_entity_type_filters = {"straight-rail", "curved-rail", "rail-signal", "rail-chain-signal"},
-    can_be_mod_opened = true
+    entity_type_filters = {"straight-rail", "curved-rail"},
+    alt_entity_type_filters = {"straight-rail", "curved-rail"},
+    reverse_entity_type_filters = {"rail-signal", "rail-chain-signal"},
+    alt_reverse_entity_type_filters = {"rail-signal", "rail-chain-signal"},
+    can_be_mod_opened = true,
+    localised_description = {
+      "",
+      {"item-description.rail-signal-planner"},
+      "\n",
+      font_start,
+      {"gui.instruction-when-in-cursor"},
+      ":",
+      line_start,
+      {"item-description.rsp-regular-behaviour", "__CONTROL_LEFT_CLICK__"},
+      line_start,
+      {"item-description.rsp-alt-behaviour",  "__CONTROL_KEY_SHIFT__ __CONTROL_STYLE_BEGIN__+__CONTROL_STYLE_END__ __CONTROL_LEFT_CLICK__", {"rsp-gui.force-unidirectional"}},
+      line_start,
+      {"item-description.rsp-cancel-construction-jobs", "__CONTROL_RIGHT_CLICK__"},
+      line_start,
+      {"item-description.rsp-drag-to-deconstruct", "__CONTROL_KEY_SHIFT__ __CONTROL_STYLE_BEGIN__+__CONTROL_STYLE_END__ __CONTROL_RIGHT_CLICK__"},
+      line_start,
+      {"gui.instruction-to-destroy", "__CONTROL__drop-cursor__"},
+      font_end,
+    }
   },
   {
     name = "give-rail-signal-planner",

@@ -2,86 +2,100 @@ function equal_pos(pos1, pos2)
   return pos1.x == pos2.x and pos1.y == pos2.y
 end
 
+function rail_connected_rails(rail)
+  -- get all rails connected to this rail
+  local connected_rails = {}
+  for _, connection_direction in pairs({"left", "straight", "right"}) do
+    for _, rail_direction in pairs(defines.rail_direction) do
+      local connected_rail = rail.get_connected_rail{rail_direction=rail_direction, rail_connection_direction=defines.rail_connection_direction[connection_direction]}
+      if connected_rail then
+        table.insert(connected_rails, connected_rail)
+      end
+    end
+  end
+  return connected_rails
+end
+
 function get_signal_placements(rail)
   local positions = {}
   local r_x = rail.position.x
   local r_y = rail.position.y
   if rail.type == "straight-rail" then
     if rail.direction == defines.direction.east then
-      positions.back ={left={pos={x=r_x+0.5, y=r_y+1.5}, dir=defines.direction.west, length=1}, right={pos={x=r_x-0.5, y=r_y-1.5}, dir=defines.direction.east, length=1}}
-      positions.front = {left={pos={x=r_x-0.5, y=r_y+1.5}, dir=defines.direction.west, length=1}, right={pos={x=r_x+0.5, y=r_y-1.5}, dir=defines.direction.east, length=1}}
+      positions.back ={left={position={x=r_x+0.5, y=r_y+1.5}, direction=defines.direction.west, length=1}, right={position={x=r_x-0.5, y=r_y-1.5}, direction=defines.direction.east, length=1}}
+      positions.front = {left={position={x=r_x-0.5, y=r_y+1.5}, direction=defines.direction.west, length=1}, right={position={x=r_x+0.5, y=r_y-1.5}, direction=defines.direction.east, length=1}}
     elseif rail.direction == defines.direction.north then
-      positions.front = {left={pos={x=r_x+1.5, y=r_y+0.5}, dir=defines.direction.south, length=1}, right={pos={x=r_x-1.5, y=r_y-0.5}, dir=defines.direction.north, length=1}}
-      positions.back = {left={pos={x=r_x+1.5, y=r_y-0.5}, dir=defines.direction.south, length=1}, right={pos={x=r_x-1.5, y=r_y+0.5}, dir=defines.direction.north, length=1}}
+      positions.front = {left={position={x=r_x+1.5, y=r_y+0.5}, direction=defines.direction.south, length=1}, right={position={x=r_x-1.5, y=r_y-0.5}, direction=defines.direction.north, length=1}}
+      positions.back = {left={position={x=r_x+1.5, y=r_y-0.5}, direction=defines.direction.south, length=1}, right={position={x=r_x-1.5, y=r_y+0.5}, direction=defines.direction.north, length=1}}
     elseif rail.direction == defines.direction.northeast then
       --game.print("Northeast straight " .. (r_x + r_y) % 4 )
       if (r_x + r_y) % 4 == 2 then
-        positions.front = {left={pos={x=r_x+1.5, y=r_y-1.5}, dir=defines.direction.southeast, length=1.5}, right={pos={x=r_x-0.5, y=r_y+0.5}, dir=defines.direction.northwest, length=1.5}}
+        positions.front = {left={position={x=r_x+1.5, y=r_y-1.5}, direction=defines.direction.southeast, length=1.5}, right={position={x=r_x-0.5, y=r_y+0.5}, direction=defines.direction.northwest, length=1.5}}
       elseif (r_x + r_y) % 4 == 0 then
-        positions.front = {left={pos={x=r_x+1.5, y=r_y-1.5}, dir=defines.direction.southeast, length=1.5}, right={pos={x=r_x-0.5, y=r_y+0.5}, dir=defines.direction.northwest, length=1.5}}
+        positions.front = {left={position={x=r_x+1.5, y=r_y-1.5}, direction=defines.direction.southeast, length=1.5}, right={position={x=r_x-0.5, y=r_y+0.5}, direction=defines.direction.northwest, length=1.5}}
       end
     elseif rail.direction == defines.direction.southwest then
       --game.print("Southwest straight " .. (r_x + r_y) % 4 )
       if (r_x + r_y) % 4 == 2 then
-        positions.front = {right={pos={x=r_x+0.5, y=r_y-0.5}, dir=defines.direction.southeast, length=1.5}, left={pos={x=r_x-1.5, y=r_y+1.5}, dir=defines.direction.northwest, length=1.5}}
+        positions.front = {right={position={x=r_x+0.5, y=r_y-0.5}, direction=defines.direction.southeast, length=1.5}, left={position={x=r_x-1.5, y=r_y+1.5}, direction=defines.direction.northwest, length=1.5}}
       elseif (r_x + r_y) % 4 == 0 then
-        positions.front = {right={pos={x=r_x+0.5, y=r_y-0.5}, dir=defines.direction.southeast, length=1.5}, left={pos={x=r_x-1.5, y=r_y+1.5}, dir=defines.direction.northwest, length=1.5}}
+        positions.front = {right={position={x=r_x+0.5, y=r_y-0.5}, direction=defines.direction.southeast, length=1.5}, left={position={x=r_x-1.5, y=r_y+1.5}, direction=defines.direction.northwest, length=1.5}}
       end
     elseif rail.direction == defines.direction.southeast then
       --game.print("Southeast straight " .. (r_x + r_y) % 4 )
       if (r_x + r_y) % 4 == 2 then
-        positions.front = {right={pos={x=r_x-0.5, y=r_y-0.5}, dir=defines.direction.northeast, length=1.5}, left={pos={x=r_x+1.5, y=r_y+1.5}, dir=defines.direction.southwest, length=1.5}}
+        positions.front = {right={position={x=r_x-0.5, y=r_y-0.5}, direction=defines.direction.northeast, length=1.5}, left={position={x=r_x+1.5, y=r_y+1.5}, direction=defines.direction.southwest, length=1.5}}
       elseif (r_x + r_y) % 4 == 0 then
-        positions.front = {right={pos={x=r_x-0.5, y=r_y-0.5}, dir=defines.direction.northeast, length=1.5}, left={pos={x=r_x+1.5, y=r_y+1.5}, dir=defines.direction.southwest, length=1.5}}
+        positions.front = {right={position={x=r_x-0.5, y=r_y-0.5}, direction=defines.direction.northeast, length=1.5}, left={position={x=r_x+1.5, y=r_y+1.5}, direction=defines.direction.southwest, length=1.5}}
       end
     elseif rail.direction == defines.direction.northwest then
       --game.print("Northwest straight " .. (r_x + r_y) % 4 )
       if (r_x + r_y) % 4 == 2 then
-        positions.front = {left={pos={x=r_x-1.5, y=r_y-1.5}, dir=defines.direction.northeast, length=1.5}, right={pos={x=r_x+0.5, y=r_y+0.5}, dir=defines.direction.southwest, length=1.5}}
+        positions.front = {left={position={x=r_x-1.5, y=r_y-1.5}, direction=defines.direction.northeast, length=1.5}, right={position={x=r_x+0.5, y=r_y+0.5}, direction=defines.direction.southwest, length=1.5}}
       elseif (r_x + r_y) % 4 == 0 then
-        positions.front = {left={pos={x=r_x-1.5, y=r_y-1.5}, dir=defines.direction.northeast, length=1.5}, right={pos={x=r_x+0.5, y=r_y+0.5}, dir=defines.direction.southwest, length=1.5}}
+        positions.front = {left={position={x=r_x-1.5, y=r_y-1.5}, direction=defines.direction.northeast, length=1.5}, right={position={x=r_x+0.5, y=r_y+0.5}, direction=defines.direction.southwest, length=1.5}}
       end
     end
   else
     if rail.direction == defines.direction.north then
       --game.print("North")
-      positions.back = {right={pos={x=r_x-0.5, y=r_y-3.5}, dir=defines.direction.southeast, length=1}, left={pos={x=r_x-0.5, y=r_y+3.5}, dir=defines.direction.north, length=1}}
-      positions.front = {right={pos={x=r_x+2.5, y=r_y+3.5}, dir=defines.direction.south, length=7}, left={pos={x=r_x-2.5, y=r_y-1.5}, dir=defines.direction.northwest, length=7}}
+      positions.back = {right={position={x=r_x-0.5, y=r_y-3.5}, direction=defines.direction.southeast, length=1}, left={position={x=r_x-0.5, y=r_y+3.5}, direction=defines.direction.north, length=1}}
+      positions.front = {right={position={x=r_x+2.5, y=r_y+3.5}, direction=defines.direction.south, length=7}, left={position={x=r_x-2.5, y=r_y-1.5}, direction=defines.direction.northwest, length=7}}
     elseif rail.direction == defines.direction.northeast then
       --game.print("NorthEast")
-      positions.back = {right={pos={x=r_x+2.5, y=r_y-1.5}, dir=defines.direction.southwest, length=1}, left={pos={x=r_x-2.5, y=r_y+3.5}, dir=defines.direction.north, length=1}}
-      positions.front = {right={pos={x=r_x+0.5, y=r_y+3.5}, dir=defines.direction.south, length=7}, left={pos={x=r_x+0.5, y=r_y-3.5}, dir=defines.direction.northeast, length=7}}
+      positions.back = {right={position={x=r_x+2.5, y=r_y-1.5}, direction=defines.direction.southwest, length=1}, left={position={x=r_x-2.5, y=r_y+3.5}, direction=defines.direction.north, length=1}}
+      positions.front = {right={position={x=r_x+0.5, y=r_y+3.5}, direction=defines.direction.south, length=7}, left={position={x=r_x+0.5, y=r_y-3.5}, direction=defines.direction.northeast, length=7}}
     elseif rail.direction == defines.direction.east then
       --game.print("East")
-      positions.back = {right={pos={y=r_y-0.5, x=r_x+3.5}, dir=defines.direction.southwest, length=1}, left={pos={y=r_y-0.5, x=r_x-3.5}, dir=defines.direction.east, length=1}}
-      positions.front = {right={pos={y=r_y+2.5, x=r_x-3.5}, dir=defines.direction.west, length=7}, left={pos={y=r_y-2.5, x=r_x+1.5}, dir=defines.direction.northeast, length=7}}
+      positions.back = {right={position={y=r_y-0.5, x=r_x+3.5}, direction=defines.direction.southwest, length=1}, left={position={y=r_y-0.5, x=r_x-3.5}, direction=defines.direction.east, length=1}}
+      positions.front = {right={position={y=r_y+2.5, x=r_x-3.5}, direction=defines.direction.west, length=7}, left={position={y=r_y-2.5, x=r_x+1.5}, direction=defines.direction.northeast, length=7}}
     elseif rail.direction == defines.direction.southeast then
       --game.print("SouthEast")
-      positions.back = {right={pos={y=r_y+2.5, x=r_x+1.5}, dir=defines.direction.northwest, length=1}, left={pos={y=r_y-2.5, x=r_x-3.5}, dir=defines.direction.east, length=1}}
-      positions.front = {right={pos={y=r_y+0.5, x=r_x-3.5}, dir=defines.direction.west, length=7}, left={pos={y=r_y+0.5, x=r_x+3.5}, dir=defines.direction.southeast, length=7}}
+      positions.back = {right={position={y=r_y+2.5, x=r_x+1.5}, direction=defines.direction.northwest, length=1}, left={position={y=r_y-2.5, x=r_x-3.5}, direction=defines.direction.east, length=1}}
+      positions.front = {right={position={y=r_y+0.5, x=r_x-3.5}, direction=defines.direction.west, length=7}, left={position={y=r_y+0.5, x=r_x+3.5}, direction=defines.direction.southeast, length=7}}
     elseif rail.direction == defines.direction.south then
       --game.print("South")
-      positions.back = {right={pos={x=r_x+0.5, y=r_y+3.5}, dir=defines.direction.northwest, length=1}, left={pos={x=r_x+0.5, y=r_y-3.5}, dir=defines.direction.south, length=1}}
-      positions.front = {right={pos={x=r_x-2.5, y=r_y-3.5}, dir=defines.direction.north, length=7}, left={pos={x=r_x+2.5, y=r_y+1.5}, dir=defines.direction.southeast, length=7}}
+      positions.back = {right={position={x=r_x+0.5, y=r_y+3.5}, direction=defines.direction.northwest, length=1}, left={position={x=r_x+0.5, y=r_y-3.5}, direction=defines.direction.south, length=1}}
+      positions.front = {right={position={x=r_x-2.5, y=r_y-3.5}, direction=defines.direction.north, length=7}, left={position={x=r_x+2.5, y=r_y+1.5}, direction=defines.direction.southeast, length=7}}
     elseif rail.direction == defines.direction.southwest then
       --game.print("SouthWest")
-      positions.back = {right={pos={x=r_x-2.5, y=r_y+1.5}, dir=defines.direction.northeast, length=1}, left={pos={x=r_x+2.5, y=r_y-3.5}, dir=defines.direction.south, length=1}}
-      positions.front = {right={pos={x=r_x-0.5, y=r_y-3.5}, dir=defines.direction.north, length=7}, left={pos={x=r_x-0.5, y=r_y+3.5}, dir=defines.direction.southwest, length=7}}
+      positions.back = {right={position={x=r_x-2.5, y=r_y+1.5}, direction=defines.direction.northeast, length=1}, left={position={x=r_x+2.5, y=r_y-3.5}, direction=defines.direction.south, length=1}}
+      positions.front = {right={position={x=r_x-0.5, y=r_y-3.5}, direction=defines.direction.north, length=7}, left={position={x=r_x-0.5, y=r_y+3.5}, direction=defines.direction.southwest, length=7}}
     elseif rail.direction == defines.direction.west then
       --game.print("West")
-      positions.back = {right={pos={y=r_y+0.5, x=r_x-3.5}, dir=defines.direction.northeast, length=1}, left={pos={y=r_y+0.5, x=r_x+3.5}, dir=defines.direction.west, length=1}}
-      positions.front = {right={pos={y=r_y-2.5, x=r_x+3.5}, dir=defines.direction.east, length=7}, left={pos={y=r_y+2.5, x=r_x-1.5}, dir=defines.direction.southwest, length=7}}
+      positions.back = {right={position={y=r_y+0.5, x=r_x-3.5}, direction=defines.direction.northeast, length=1}, left={position={y=r_y+0.5, x=r_x+3.5}, direction=defines.direction.west, length=1}}
+      positions.front = {right={position={y=r_y-2.5, x=r_x+3.5}, direction=defines.direction.east, length=7}, left={position={y=r_y+2.5, x=r_x-1.5}, direction=defines.direction.southwest, length=7}}
     elseif rail.direction == defines.direction.northwest then
       --game.print("NorthWest")
-      positions.back = {right={pos={y=r_y-2.5, x=r_x-1.5}, dir=defines.direction.southeast, length=1}, left={pos={y=r_y+2.5, x=r_x+3.5}, dir=defines.direction.west, length=1}}
-      positions.front = {right={pos={y=r_y-0.5, x=r_x+3.5}, dir=defines.direction.east, length=7}, left={pos={y=r_y-0.5, x=r_x-3.5}, dir=defines.direction.northwest, length=7}}
+      positions.back = {right={position={y=r_y-2.5, x=r_x-1.5}, direction=defines.direction.southeast, length=1}, left={position={y=r_y+2.5, x=r_x+3.5}, direction=defines.direction.west, length=1}}
+      positions.front = {right={position={y=r_y-0.5, x=r_x+3.5}, direction=defines.direction.east, length=7}, left={position={y=r_y-0.5, x=r_x-3.5}, direction=defines.direction.northwest, length=7}}
     end
   end
-  --rendering.draw_circle{color={1, 0, 0}, radius=0.2, filled=true, target=positions.front.right.pos, time_to_live=6000, surface=rail.surface}
-  --rendering.draw_circle{color={0, 1, 0}, radius=0.2, filled=true,  target=positions.front.left.pos, time_to_live=6000, surface=rail.surface}
+  --rendering.draw_circle{color={1, 0, 0}, radius=0.2, filled=true, target=positions.front.right.position, time_to_live=6000, surface=rail.surface}
+  --rendering.draw_circle{color={0, 1, 0}, radius=0.2, filled=true,  target=positions.front.left.position, time_to_live=6000, surface=rail.surface}
   --if positions.back then
-  --  rendering.draw_circle{color={0, 0, 1}, radius=0.2, filled=true, target=positions.back.right.pos, time_to_live=6000, surface=rail.surface}
-  --  rendering.draw_circle{color={0, 1, 0.5}, radius=0.2, filled=true, target=positions.back.left.pos, time_to_live=6000, surface=rail.surface}
+  --  rendering.draw_circle{color={0, 0, 1}, radius=0.2, filled=true, target=positions.back.right.position, time_to_live=6000, surface=rail.surface}
+  --  rendering.draw_circle{color={0, 1, 0.5}, radius=0.2, filled=true, target=positions.back.left.position, time_to_live=6000, surface=rail.surface}
   --end
   return positions
 end
@@ -165,33 +179,33 @@ function get_collision_positions(signal)
       end
     end
     for i, pos in pairs(positions.front.right) do
-      pos = {x=r_x + pos[1], y=r_y + pos[2]}
+      position = {x=r_x + pos[1], y=r_y + pos[2]}
       positions.front.right[i] = pos
-      rendering.draw_circle{color={1, 0, 0}, radius=0.2, filled=true, target=pos, time_to_live=6000, surface=rail.surface}
-      local num_entities = #rail.surface.find_entities_filtered{type={"straight-rail", "curved-rail"}, position = pos, radius=0.1, force=rail.force}
-      rendering.draw_text{color={0, 1, 1}, text=num_entities, target=pos, time_to_live=6000, surface=rail.surface}
+      -- rendering.draw_circle{color={1, 0, 0}, radius=0.2, filled=true, target.position, time_to_live=6000, surface=rail.surface}
+      local num_entities = #rail.surface.find_entities_filtered{type={"straight-rail", "curved-rail"}, position = position, radius=0.1, force=rail.force}
+      -- rendering.draw_text{color={0, 1, 1}, text=num_entities, target.position, time_to_live=6000, surface=rail.surface}
     end
     for i, pos in pairs(positions.front.left) do
-      pos = {x=r_x + pos[1], y=r_y + pos[2]}
+      position = {x=r_x + pos[1], y=r_y + pos[2]}
       positions.front.left[i] = {x=r_x + pos[1], y=r_y + pos[2]}
-      rendering.draw_circle{color={0, 1, 0}, radius=0.2, filled=true,  target=pos, time_to_live=6000, surface=rail.surface}
-      local num_entities = #rail.surface.find_entities_filtered{type={"straight-rail", "curved-rail"}, position = pos, radius=0.1, force=rail.force}
-      rendering.draw_text{color={0, 1, 1}, text=num_entities, target=pos, time_to_live=6000, surface=rail.surface}
+      -- rendering.draw_circle{color={0, 1, 0}, radius=0.2, filled=true,  target.position, time_to_live=6000, surface=rail.surface}
+      local num_entities = #rail.surface.find_entities_filtered{type={"straight-rail", "curved-rail"}, position = position, radius=0.1, force=rail.force}
+      -- rendering.draw_text{color={0, 1, 1}, text=num_entities, target.position, time_to_live=6000, surface=rail.surface}
     end
     if positions.back then
       for i, pos in pairs(positions.back.right) do
-        pos = {x=r_x + pos[1], y=r_y + pos[2]}
+        position = {x=r_x + pos[1], y=r_y + pos[2]}
         positions.back.right[i] = pos
-        rendering.draw_circle{color={0, 0, 1}, radius=0.2, filled=true, target=pos, time_to_live=6000, surface=rail.surface}
-        local num_entities = #rail.surface.find_entities_filtered{type={"straight-rail", "curved-rail"}, position = pos, radius=0.1, force=rail.force}
-        rendering.draw_text{color={0, 1, 1}, text=num_entities, target=pos, time_to_live=6000, surface=rail.surface}
+        -- rendering.draw_circle{color={0, 0, 1}, radius=0.2, filled=true, target.position, time_to_live=6000, surface=rail.surface}
+        local num_entities = #rail.surface.find_entities_filtered{type={"straight-rail", "curved-rail"}, position = position, radius=0.1, force=rail.force}
+        -- rendering.draw_text{color={0, 1, 1}, text=num_entities, target.position, time_to_live=6000, surface=rail.surface}
       end
       for i, pos in pairs(positions.back.left) do
-        pos = {x=r_x + pos[1], y=r_y + pos[2]}
+        position = {x=r_x + pos[1], y=r_y + pos[2]}
         positions.back.left[i] = pos
-        rendering.draw_circle{color={0, 1, 0.5}, radius=0.2, filled=true, target=pos, time_to_live=6000, surface=rail.surface}
-        local num_entities = #rail.surface.find_entities_filtered{type={"straight-rail", "curved-rail"}, position = pos, radius=0.1, force=rail.force}
-        rendering.draw_text{color={0, 1, 1}, text=num_entities, target=pos, time_to_live=6000, surface=rail.surface}
+        -- rendering.draw_circle{color={0, 1, 0.5}, radius=0.2, filled=true, target.position, time_to_live=6000, surface=rail.surface}
+        local num_entities = #rail.surface.find_entities_filtered{type={"straight-rail", "curved-rail"}, position = position, radius=0.1, force=rail.force}
+        -- rendering.draw_text{color={0, 1, 1}, text=num_entities, target.position, time_to_live=6000, surface=rail.surface}
       end
     end
   end

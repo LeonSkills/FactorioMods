@@ -1,4 +1,8 @@
 -- Base functions commonly used go in here
+function distance(pos1, pos2)
+  return math.sqrt(math.pow(pos1.x - pos2.x, 2) + math.pow(pos1.y - pos2.y, 2))
+end
+
 function contains(array, value)
   for i, v in pairs(array) do
     if v == value then
@@ -32,6 +36,7 @@ function tprint (tbl, indent)
   if not indent then indent = 2 end
   if not tbl then
     print(nil)
+    return
   end
   for k, v in pairs(tbl) do
     formatting = string.rep("  ", indent) .. k .. ": "
@@ -46,6 +51,10 @@ function tprint (tbl, indent)
   end
 end
 
+function copy_table(tbl)
+  return union(tbl, {})
+end
+
 function union ( a, b )
     local result = {}
     for k,v in pairs ( a ) do
@@ -55,6 +64,12 @@ function union ( a, b )
          table.insert( result, v )
     end
     return result
+end
+
+function tablesize(tbl)
+  local count = 0
+  for _, _ in pairs(tbl) do count = count + 1 end
+  return count
 end
 
 function tablefind(tab,el)
@@ -74,5 +89,6 @@ function create_unique_id(position, direction)
 end
 
 function entity_id(entity)
-  return entity.type..","..create_unique_id(entity.position, entity.direction)
+  local type = entity.type == "entity-ghost" and entity.ghost_type or entity.type
+  return type..","..create_unique_id(entity.position, entity.direction)
 end

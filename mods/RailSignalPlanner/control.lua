@@ -1,53 +1,208 @@
-local build_graph = require("scripts/create_signal_chain")
+local build_graph = require("scripts/build_graph")
 local mark_rail_direction = require("scripts/mark_rail_direction")
 local place_signals = require("scripts/place_signals")
 local change_signals = require("scripts/change_signals")
 local ghostify = require("scripts/ghostify")
 require("gui/signal_tool_gui")
+require("scripts/objects/rail")
 
-local function remove_ghosts(entities)
-  for i, entity in pairs(entities) do
-    if entity.type == "entity-ghost" and (entity.ghost_type == "rail-signal" or entity.ghost_type == "rail-chain-signal") then
-      entity.destroy()
-      entities[i] = nil
+local function initialize_settings(player, invert_bidirectional_setting)
+  Signal.unidirectional = get_setting("force_unidirectional", player)
+  if invert_bidirectional_setting then
+    Signal.unidirectional = not Signal.unidirectional
+  end
+  -- set which rails are used by which planner for the settings
+  local planners = game.get_filtered_item_prototypes{{filter="type", type="rail-planner"}}
+  Rail.planners = {}
+  Signal.settings = {train_length = {}, rail_signal_distance = {}, rail_signal_item = {}, rail_chain_signal_item = {}}
+  for _, planner in pairs(planners) do
+    Rail.planners[planner.straight_rail.name] = planner.name
+    Rail.planners[planner.curved_rail.name] = planner.name
+    Signal.settings.rail_signal_item[planner.name] = get_setting("rail_signal_item", player, planner.name)
+    local chain_signal = get_setting("rail_chain_signal_item", player, planner.name)
+    if not game.entity_prototypes[chain_signal] then
+      chain_signal = "rail-chain-signal"
+      set_settings({["rail_chain_signal_item"] = chain_signal}, player)
+    end
+    Signal.settings.rail_chain_signal_item[planner.name] = chain_signal
+    local rail_signal = get_setting("rail_signal_item", player, planner.name)
+    if not game.entity_prototypes[rail_signal] then
+      rail_signal = "rail-signal"
+      set_settings({["rail_signal_item"] = rail_signal}, player)
+    end
+    Signal.settings.rail_signal_item[planner.name] = rail_signal
+    Signal.settings.rail_signal_distance[planner.name] = get_setting("rail_signal_distance", player, planner.name)
+    Signal.settings.train_length[planner.name] = get_setting("train_length", player, planner.name)
+  end
+  Rail.planners["straight-water-way-placed"] = "water-way" -- Cargo ships replace the rail entities..
+  Rail.planners["curved-water-way-placed"] = "water-way" -- Cargo ships replace the rail entities..
+end
+
+local function build_signals(rails, player, using_rail_planner, invert_bidirectional_setting)
+  rendering.clear()
+  if #rails == 0 then return end
+  initialize_settings(player, invert_bidirectional_setting)
+
+  -- create a chain of signals where signals can be placed
+  build_graph(rails, player)
+
+  -- For each rail decide if signals are placed on the left or right or both
+  local succeeded = mark_rail_direction(player, rails[#rails])
+  if not succeeded then
+    if using_rail_planner and get_setting("force_build_rails", player) == false then
+      for _, rail in pairs(rails) do
+        player.mine_entity(rail, false)
+      end
+    end
+    ghostify(player, false)
+    Rail.all_rails = {}
+    Signal.all_signals = {}
+    return
+  end
+  -- place signals
+  place_signals()
+  -- change signals, checking overlaps
+  change_signals(player, true)
+  -- restore signals and rails based on their original signal
+  ghostify(player, using_rail_planner)
+
+  Rail.all_rails = {}
+  Signal.all_signals = {}
+end
+
+local built_rails = {}
+local function on_built_entity(event)
+  local player = game.players[event.player_index]
+  local entity = event.created_entity
+  -- if entity.type == "straight-rail" then
+  --   local position = entity.position
+  --   local surface = entity.surface
+  --   local signal_position = {x = position.x + 1.5, y = position.y - 0.5}
+  --   entity.destroy()
+  --   surface.create_entity{name="straight-rail", position=position, force=player.force, player=player}
+  --   surface.create_entity{name="rail-signal", position=signal_position, force=player.force, player=player, direction=defines.direction.south}
+  --   return
+  -- end
+  if entity.type == "straight-rail" or entity.type == "curved-rail" then
+    if not get_setting("place_signals_with_rail_planner", player) then return end
+    if built_rails[event.player_index] == nil then
+      built_rails[event.player_index] = {}
+    end
+    table.insert(built_rails[event.player_index], {entity=entity, position=entity.position, direction=entity.direction, type=entity.type, surface=entity.surface})
+  end
+end
+
+local function remove_disconnected_signals(player, rails)
+  local min_x, min_y, max_x, max_y
+  local surface
+  for _, rail in pairs(rails) do
+    if rail.valid then
+      surface = surface or rail.surface
+      min_x = min_x and math.min(min_x, rail.position.x) or rail.position.x
+      min_y = min_y and math.min(min_y, rail.position.y) or rail.position.y
+      max_x = max_x and math.max(max_x, rail.position.x) or rail.position.x
+      max_y = max_y and math.max(max_y, rail.position.y) or rail.position.y
+    end
+  end
+  if not min_x then return end
+  local signals = surface.find_entities_filtered{area={{min_x-4, min_y-4},{max_x+4, max_y+4}}, type={"rail-signal", "rail-chain-signal"}, force=player.force, to_be_deconstructed=false}
+  for _, signal in pairs(signals) do
+    if #signal.get_connected_rails() == 0 then
+      signal.order_deconstruction(player.force, player)
     end
   end
 end
 
+local function check_changed_rails(rails)
+  -- some mods (cargo ships) change the rail type when they are build
+  local new_rails = {}
+  for _, rail in pairs(rails) do
+    if not rail.entity.valid then
+      local new_rail = rail.surface.find_entities_filtered{type=rail.type, position=rail.position, direction=rail.direction}
+      new_rail = #new_rail == 1 and new_rail[1]
+      table.insert(new_rails, new_rail)
+    end
+    table.insert(new_rails, rail.entity)
+  end
+  return new_rails
+end
+
+local function on_tick(event)
+  for player_index, rails in pairs(built_rails) do
+    -- remove any signals that have become disconnected
+    local player = game.players[player_index]
+    rails = check_changed_rails(rails)
+    remove_disconnected_signals(player, rails)
+    build_signals(rails, game.players[player_index], true)
+  end
+  built_rails = {}
+end
+
+script.on_event(defines.events.on_built_entity, on_built_entity)
+script.on_event(defines.events.on_tick, on_tick)
+
+-- functionality when selecing items with the tool
+
 local function on_player_selected_area(event, alt_mode)
   local item = event.item
   if item == "rail-signal-planner" then
-    local entities = event.entities
+    local rails = {}
+    for _, entity in pairs(event.entities) do
+      if entity.type == "straight-rail" or entity.type == "curved-rail" then
+        table.insert(rails, entity)
+      end
+    end
     local player = game.players[event.player_index]
+    build_signals(rails, player, false, alt_mode)
+  end
+end
 
-    remove_ghosts(entities)
-    -- create a chain of signals where signals can be placed
-    local signal_chain, rails = build_graph(entities, player)
-    -- For each rail decide if signals are placed on the left or right or both
-    local cur_signals = mark_rail_direction(signal_chain, entities, player, alt_mode)
-    -- place signals
-    place_signals(signal_chain, cur_signals,  player)
-    -- change signals, checking overlaps
-    change_signals(rails, signal_chain, player)
-    -- restore signals based on their original signal
-    ghostify(signal_chain, player)
+local function on_player_reverse_selected_area(event)
+  local item = event.item
+  if item ~= "rail-signal-planner" then return end
+  local player = game.players[event.player_index]
+  if not player then return end
+  for _, signal in pairs(event.entities) do
+    signal.cancel_deconstruction(player.force, player)
+    signal.cancel_upgrade(player.force, player)
+    if signal.type == "entity-ghost" then
+      signal.destroy{raise_destroy=true}
+    end
+  end
+end
+
+local function on_player_alt_reverse_selected_area(event)
+  local item = event.item
+  if item ~= "rail-signal-planner" then return end
+  local player = game.players[event.player_index]
+  if not player then return end
+  for _, signal in pairs(event.entities) do
+    signal.cancel_upgrade(player.force, player)
+    if signal.type == "entity-ghost" then
+      signal.destroy{raise_destroy=true}
+    else
+      signal.order_deconstruction(player.force, player)
+    end
   end
 end
 
 script.on_event(defines.events.on_player_selected_area, function(event)
-		on_player_selected_area(event, false)
-	end)
+  on_player_selected_area(event, false)
+end)
 
 script.on_event(defines.events.on_player_alt_selected_area, function(event)
-		on_player_selected_area(event, true)
-	end)
+  on_player_selected_area(event, true)
+end)
+
+script.on_event(defines.events.on_player_reverse_selected_area, on_player_reverse_selected_area)
+script.on_event(defines.events.on_player_alt_reverse_selected_area, on_player_alt_reverse_selected_area)
 
 -- when dropping a rail signal planner, just delete it
 script.on_event(defines.events.on_player_dropped_item, function(event)
-		if event.entity ~= nil and event.entity.stack ~= nil and event.entity.stack.name == "rail-signal-planner" then
-			event.entity.stack.clear()
-		end
-	end)
+  if event.entity ~= nil and event.entity.stack ~= nil and event.entity.stack.name == "rail-signal-planner" then
+    event.entity.stack.clear()
+  end
+end)
 
 -- toggle rail block visualisation when player holds the planner
 -- don't toggle it off if it was on when the player first took the planner in hand

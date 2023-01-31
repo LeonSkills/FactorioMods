@@ -1,4 +1,27 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.2.0
+Date: 2023-31-01
+  Major Features:
+    - Allows signals to be placed when building rails
+    - Added cargo ships compatibility
+
+  Features:
+    - Added option to disallow rails to be built if the rail direction is conflicting
+    - Added option to only allow unidirectional rails
+    - Added option to remove construction jobs for signals (right click + drag) and order to deconstruct all signals (shift + right click + drag)
+
+  Changes:
+    - Automatically check for rails outside of the selection if they should be included in the calculation
+
+  Gui:
+    - Moved the settings GUI from center to left menu
+    - Added a mod gui button. Settings menu can now be option by this button and by right click on the planner. Can be removed in mod options
+    - Added settings per rail planner. (So different settings possible for normal rails, cargo ships, space rails, etc.)
+    - Use the elem_filters of the gui to allow players to only pick rail-signal/rail-chain-signal entities
+
+  Graphics:
+    - Updated the mod icon to use new rail signal graphics
+---------------------------------------------------------------------------------------------------
 Version: 1.1.1
 Date: 2022-29-11
   Bugfixes:
