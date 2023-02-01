@@ -1,12 +1,27 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.2.2
+Date: 2023-02-01
+  Features:
+    - Added a shortcut for closing/opening the menu
+    - Added a shortcut for toggling one-way rails
+    - Added a shortcut for toggling building signals while building rails
+    - Right click on the menu button now puts Rail signal planner item in your cursor
+  Gui:
+    - If there are no more buttons in the top left menu when removing the rsp menu button then the bar is removed
+    - Menu button now uses the same style as GUI Unifyer mod
+  Bugfixes:
+    - Fixed the menu closing when switching rail type
+    - Fixed pressing Z when cursor was outside of reach distance not clearing the planner
+    - Fixed error when trying to remove the menu button through settings
+---------------------------------------------------------------------------------------------------
 Version: 1.2.1
-Date: 2023-31-01
+Date: 2023-01-31
   Gui:
     - Added a close button
     - Updated the settings interface to look better on smaller screens
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.0
-Date: 2023-31-01
+Date: 2023-01-31
   Major Features:
     - Allows signals to be placed when building rails
     - Added cargo ships compatibility
@@ -25,7 +40,7 @@ Date: 2023-31-01
     - Updated the mod icon to use new rail signal graphics
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.1
-Date: 2022-29-11
+Date: 2022-11-29
   Bugfixes:
     - Fixed crash when setting train lengths
 ---------------------------------------------------------------------------------------------------

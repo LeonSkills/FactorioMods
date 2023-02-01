@@ -3,61 +3,110 @@ require("scripts/utility")
 local mod_gui = require("mod-gui")
 
 -- scripts to initialize the buttons
-function remove_button(player)
-  local flow = get_button_flow(player)
-  if flow.rsp_button then flow.rsp_button.destroy() end
-end
-
-function get_button_flow(player)
+local function get_button_flow(player)
   local button_flow = mod_gui.get_button_flow(player)
-  local flow = button_flow.rsp_flow
-  if not flow then
-    flow = button_flow.add{type="flow", name="rsp_flow", direction="horizontal"}
-  end
-  return flow
+  if button_flow.rsp_flow then button_flow.rsp_flow.destroy() end --legacy
+  return button_flow
 end
 
-function add_setting_button(player)
+function refresh_button(player)
   local flow = get_button_flow(player)
-  if flow.rsp_button then flow.rsp_button.destroy() end
-  flow.add{type="sprite-button", name="rsp_button", sprite="item/rail-signal", style=mod_gui.button_style, tooltip = {"item-name.rail-signal-planner"}}
+  if flow.rsp_button then
+    local gui_unifyer_style = settings.get_player_settings(player)["gu_button_style_setting"]
+    local style = gui_unifyer_style and (gui_unifyer_style.value or "slot_button_notext") or mod_gui.button_style
+    flow.rsp_button.style = style
+    local tooltip = {
+      "",
+      {"rsp-gui.rsp-menu-button-tooltip"},
+      {"controls.rsp-custom-control", "__CONTROL_LEFT_CLICK__, __CONTROL__rsp-open-menu__"},
+      "\n",
+      {"controls.give-rail-signal-planner"},
+      {"controls.rsp-custom-control", "__CONTROL_RIGHT_CLICK__, __CONTROL__give-rail-signal-planner__"},
+    }
+    flow.rsp_button.tooltip =tooltip
+  end
 end
 
-function initialize()
-  for _, player in pairs(game.players) do
-    add_setting_button(player)
-    if player.gui.left.rail_signal_gui then
-      player.gui.left.rail_signal_gui.destroy()
+local function remove_button(player)
+  local flow = get_button_flow(player)
+  if flow.rsp_flow then flow.rsp_flow.destroy() end --legacy
+  if flow.rsp_button then flow.rsp_button.destroy() end
+  if #flow.children == 0 then
+    if #flow.parent.children == 1 then
+      if #flow.parent.parent.children == 1 then
+        flow.parent.parent.destroy()
+      else
+        flow.parent.destroy()
+      end
+    else
+      flow.destroy()
     end
   end
 end
 
-function initialize_player(event)
-  add_setting_button(game.players[event.player_index])
-  local player = game.players[event.player_index]
+local function add_setting_button(player)
+  local flow = get_button_flow(player)
+  if flow.rsp_flow then flow.rsp_flow.destroy() end --legacy
+  if flow.rsp_button then flow.rsp_button.destroy() end
+
+  flow.add{type="sprite-button", name="rsp_button", sprite="item/rail-signal"}
+  refresh_button(player)
+end
+
+local function initialize_player(player)
+  if settings.get_player_settings(player.index)["rsp-toggle-menu-icon"].value then
+    add_setting_button(player)
+    refresh_button(player)
+  else
+    remove_button(player)
+  end
   if player.gui.left.rail_signal_gui then
     player.gui.left.rail_signal_gui.destroy()
   end
 end
 
+local function initialize()
+  for _, player in pairs(game.players) do
+    initialize_player(player)
+  end
+end
+
+local function on_player_created(event)
+  local player = game.players[event.player_index]
+  initialize_player(player)
+end
+
 script.on_init(initialize)
 script.on_configuration_changed(initialize)
-script.on_event(defines.events.on_player_created, initialize_player)
+script.on_event(defines.events.on_player_created, on_player_created)
 
 -- building the ui
 
-function on_gui_click(event)
-  player = game.players[event.player_index]
+local function on_gui_click(event)
+  local player = game.players[event.player_index]
   local rail_planner = event.element.name:match("^(.*)_planner_button$")
   if rail_planner and game.item_prototypes[rail_planner] and game.item_prototypes[rail_planner].type == "rail-planner" then
     set_settings({["selected_rail_planner"] = rail_planner}, player)
     toggle_signal_ui(event.player_index)
-  elseif event.element.name == "rsp_button" or event.element.name == "rsp_close_setting_interface" then
     toggle_signal_ui(event.player_index)
+  elseif event.element.name == "rsp_button" or event.element.name == "rsp_close_setting_interface" then
+    if event.button == defines.mouse_button_type.right and event.element.name == "rsp_button" then
+      player.clear_cursor()
+      local inventory = player.get_main_inventory()
+      local item_stack = inventory.find_item_stack("rail-signal-planner")
+      if item_stack then
+        item_stack.swap_stack(player.cursor_stack)
+      else
+        player.cursor_stack.set_stack({name="rail-signal-planner"})
+        player.cursor_stack_temporary=true  -- Will hopefully get fixed in the future: https://forums.factorio.com/viewtopic.php?f=28&t=105083
+      end
+    else
+      toggle_signal_ui(event.player_index)
+    end
   end
 end
 
-function add_titlebar(gui, caption, close_button_name)
+local function add_titlebar(gui, caption, close_button_name)
   local titlebar = gui.add{type = "flow"}
   titlebar.add{
     type = "label",
@@ -82,9 +131,11 @@ function add_titlebar(gui, caption, close_button_name)
   }
 end
 
+local j = 0
 function toggle_signal_ui(player_index)
   local player = game.players[player_index]
   local gui = player.gui
+  j = j + 1
   if gui.left.rail_signal_gui then
     gui.left.rail_signal_gui.destroy()
     return
@@ -96,24 +147,22 @@ function toggle_signal_ui(player_index)
   if not global_settings then
     set_default_settings(player_index)
   end
-  if player.opened then
-    player.opened.destroy()
-  end
 
   local frame = gui.left.add{type="frame", name="rail_signal_gui"}
+  player.opened = frame
   local flow = frame.add{type="flow", name="rail_signal_flow", direction="vertical"}
   add_titlebar(flow, {"rsp-gui.rail-signal-planner"}, "rsp_close_setting_interface")
   local toggle_table = flow.add{type="table", name="toggle_table", column_count = 2, vertical_screening = true}
 
-  local place_signals_with_rail_planner_label = {"rsp-gui.place-signals-with-rail-planner-tooltip"}
+  local place_signals_with_rail_planner_label = {"rsp-gui.place-signals-with-rail-planner-tooltip", "\n__CONTROL__rsp-toggle-place-signals-with-planner__"}
   toggle_table.add{type="label", name="signals_and_rails_label", caption={"rsp-gui.place-signals-with-rail-planner"}, tooltip=place_signals_with_rail_planner_label}
   toggle_table.add{type="checkbox", name="toggle_place_signals_with_rail_planner", state=get_setting("place_signals_with_rail_planner", player), tooltip=place_signals_with_rail_planner_label}
 
-  local one_way_label = {"rsp-gui.force-unidirectional-tooltip"}
+  local one_way_label = {"rsp-gui.force-unidirectional-tooltip", "\n__CONTROL__rsp-toggle-unidirectional__"}
   toggle_table.add{type="label", name="force_one_directional_label", caption={"rsp-gui.force-unidirectional"}, tooltip=one_way_label}
   toggle_table.add{type="checkbox", name="toggle_one_directional", state=get_setting("force_unidirectional", player), tooltip=one_way_label}
 
-  local force_build_rails = {"rsp-gui.force-build-rails-tooltip"}
+  local force_build_rails = {"rsp-gui.force-build-rails-tooltip", ""}
   toggle_table.add{type="label", name="force_build_rails_label", caption={"rsp-gui.force-build-rails"}, tooltip=force_build_rails}
   toggle_table.add{type="checkbox", name="toggle_force_build_rails", state=get_setting("force_build_rails", player), tooltip=force_build_rails}
 
@@ -186,8 +235,6 @@ function toggle_signal_ui(player_index)
   signal_entity_table.add{type="label", name="rail_chain_signal_item_label", caption={"entity-name.rail-chain-signal"}}
   signal_entity_table.add{type="choose-elem-button", name="rail_chain_signal_item", elem_type="entity", elem_filters = {{filter="type", type="rail-chain-signal"}, {filter="hidden", invert=true, mode="and"}}, entity=chain_signal, tooltip={"rsp-gui.tooltip-rail-chain-signal"}}
 
-
-
   local train_length = get_setting("train_length", player, current_opened_rail)
   local rail_signal_distance = get_setting("rail_signal_distance", player, current_opened_rail)
   local wagon_value = math.ceil((train_length + 1)/7)
@@ -214,26 +261,39 @@ function toggle_signal_ui(player_index)
   rail_signal_distance_slider.style.maximal_width = 200
   local rail_signal_distance_textfield = rail_signal_distance_flow.add{type="textfield", name="rail_signal_distance_textfield", text=rail_signal_distance, numeric=true, allow_decimal=false, allow_negative=false, tooltip=rail_signal_distance_tooltip}
   rail_signal_distance_textfield.style.maximal_width = 50
+end
 
+local is_gui_just_closed_escape
+local is_gui_just_closed_mod
 
-  player.opened = gui.screen.rail_signal_gui
+-- functionality because on_gui_closed and on_mod_item_opened are both fired at the same time
+-- And there is no way to distinguish if on_gui_closed was called by escape/E press or by right click on the selection tool
+-- So we keep track how the menu was closed last time
+local function on_toggle_menu_pressed(event)
+  is_gui_just_closed_escape = true
 end
 
 local function close_signal_gui(event)
-  local player = game.players[event.player_index]
-  if player and player.valid and player.gui.screen.rail_signal_gui then
-    player.gui.left.rail_signal_gui.destroy()
-  end
+  if not event.element or event.element.name ~= "rail_signal_gui" then return end
+  event.element.destroy()
+  is_gui_just_closed_mod = not is_gui_just_closed_escape
 end
 
 local function open_signal_gui(event)
   if event.item.name ~= "rail-signal-planner" then return end
-  toggle_signal_ui(event.player_index)
+  if is_gui_just_closed_mod then
+    is_gui_just_closed_mod = false
+  else
+    toggle_signal_ui(event.player_index)
+    is_gui_just_closed_escape = false
+  end
 end
 
 script.on_event(defines.events.on_gui_click, on_gui_click)
 script.on_event(defines.events.on_gui_closed, close_signal_gui)
-script.on_event(defines.events.on_mod_item_opened, open_signal_gui) -- TODO
+script.on_event(defines.events.on_mod_item_opened, open_signal_gui)
+script.on_event("rsp-close-menu-escape", on_toggle_menu_pressed)
+script.on_event("rsp-close-menu-e", on_toggle_menu_pressed)
 
 -- When values are changed
 
@@ -323,14 +383,15 @@ script.on_event(defines.events.on_gui_checked_state_changed, on_gui_elem_changed
 
 -- toggle the menu button
 local function on_runtime_mod_setting_changed(event)
-  if event.setting == "rsp-toggle-menu-icon" then
-    local player = game.players[event.player_index]
+  local player = game.players[event.player_index]
+  if event.setting == "gu_button_style_setting" then
+    refresh_button(player)
+  elseif event.setting == "rsp-toggle-menu-icon" then
     if settings.get_player_settings(event.player_index)["rsp-toggle-menu-icon"].value then
       add_setting_button(player)
     else
       remove_button(player)
     end
-
   end
 end
 

@@ -52,7 +52,7 @@ data:extend({
     type = "shortcut",
     order = "b[blueprints]-s[rail-signal-planner]",
     action = "spawn-item",
-    localised_name = {"item-name.rail-signal-planner"},
+    localised_name = {"controls.give-rail-signal-planner"},
     item_to_spawn = "rail-signal-planner",
     icon = {
       filename = "__RailSignalPlanner__/graphics/icons/rail-signal-shortcut.png",
@@ -68,6 +68,46 @@ data:extend({
     key_sequence = "ALT + S",
     action = "spawn-item",
     item_to_spawn = "rail-signal-planner",
-    consuming = "game-only"
+    consuming = "game-only",
+    order = "b"
+  },
+  {
+    name = "rsp-open-menu",
+    type = "custom-input",
+    key_sequence = "SHIFT + S",
+    consuming = "game-only",
+    order = "a"
+  },
+  {
+    name = "rsp-toggle-place-signals-with-planner",
+    type = "custom-input",
+    key_sequence = "CONTROL + SHIFT + S",
+    consuming = "game-only",
+    order = "c"
+  },
+  {
+    name = "rsp-toggle-unidirectional",
+    type = "custom-input",
+    key_sequence = "CONTROL + S",
+    consuming = "game-only",
+    order = "d"
+  },
+  {
+    name = "rsp-drop-planner",
+    type = "custom-input",
+    key_sequence = "",
+    linked_game_control = "drop-cursor",
+  },
+  { -- These two are there because on_mod_item_opened and on_gui_closed fire both on right click. We are keeping track of the closed state of the menu when E and Escape are pressed
+  name = "rsp-close-menu-escape",
+  type = "custom-input",
+  key_sequence = "",
+  linked_game_control = "toggle-menu"
+  },
+  {
+  name = "rsp-close-menu-e",
+  type = "custom-input",
+  key_sequence = "",
+  linked_game_control = "confirm-gui"
   }
 })

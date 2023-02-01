@@ -100,3 +100,27 @@ function get_setting(setting, player, additional_key)
   end
   return settings[setting]
 end
+
+function toggle_unidirectional(event)
+  -- event can also be player
+  local player_index = event.player_index or event.index
+  local player = game.players[player_index]
+  local old_value = get_setting("force_unidirectional", player)
+  set_settings({force_unidirectional = not old_value}, player)
+  local gui = get_flow(player)
+  if gui then
+    gui.toggle_table.toggle_one_directional.state = not old_value
+  end
+end
+
+function toggle_place_signals_with_planner(event)
+  -- event can also be player
+  local player_index = event.player_index or event.index
+  local player = game.players[player_index]
+  local old_value = get_setting("place_signals_with_rail_planner", player)
+  set_settings({place_signals_with_rail_planner = not old_value}, player)
+  local gui = get_flow(player)
+  if gui then
+    gui.toggle_table.toggle_place_signals_with_rail_planner.state = not old_value
+  end
+end

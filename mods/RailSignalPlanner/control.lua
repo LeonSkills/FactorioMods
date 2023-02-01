@@ -5,6 +5,7 @@ local change_signals = require("scripts/change_signals")
 local ghostify = require("scripts/ghostify")
 require("gui/signal_tool_gui")
 require("scripts/objects/rail")
+require("scripts/shortcuts")
 
 local function initialize_settings(player, invert_bidirectional_setting)
   Signal.unidirectional = get_setting("force_unidirectional", player)
@@ -196,13 +197,6 @@ end)
 
 script.on_event(defines.events.on_player_reverse_selected_area, on_player_reverse_selected_area)
 script.on_event(defines.events.on_player_alt_reverse_selected_area, on_player_alt_reverse_selected_area)
-
--- when dropping a rail signal planner, just delete it
-script.on_event(defines.events.on_player_dropped_item, function(event)
-  if event.entity ~= nil and event.entity.stack ~= nil and event.entity.stack.name == "rail-signal-planner" then
-    event.entity.stack.clear()
-  end
-end)
 
 -- toggle rail block visualisation when player holds the planner
 -- don't toggle it off if it was on when the player first took the planner in hand
