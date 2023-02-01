@@ -234,7 +234,7 @@ function Signal:change_signal(type)
   end
 end
 
-function Signal:place_signal_everywhere()
+function Signal:place_signal_everywhere(direction)
   -- We place a signal everywhere where possible to detect merges/splits/intersections later
   -- To reduce the amount of gaps of 3 as much as possible we propagate this functions forwards and backwards first
   if self.visited_place_signal_everywhere then return end
@@ -246,11 +246,15 @@ function Signal:place_signal_everywhere()
       self:change_signal("rail-signal")
     end
   end
-  for _, signal in pairs(self.signals_front) do
-    signal:place_signal_everywhere()
+  if direction ~= "back" then
+    for _, signal in pairs(self.signals_front) do
+      signal:place_signal_everywhere("front")
+    end
   end
-  for _, signal in pairs(self.signals_back) do
-    signal:place_signal_everywhere()
+  if direction ~= "front" then
+    for _, signal in pairs(self.signals_back) do
+      signal:place_signal_everywhere("back")
+    end
   end
 end
 
@@ -291,13 +295,13 @@ function Signal:clear_exit(max_train_length, visited_signals)
   max_train_length = max_train_length or self.train_length
   local current_signal = self
   local distance_left = max_train_length
-  while distance_left > 0 do
-    distance_left = distance_left - current_signal.length
+  while distance_left >= 0 do
     if #current_signal.signals_front == 0 then return end
     if #current_signal.signals_front > 1 then
       self.player.print("Exit contains a branch, should not happen. Please report to mod author", {1, 0, 0})
       return
     end
+    distance_left = distance_left - current_signal.length
     current_signal = current_signal.signals_front[1]
     if current_signal.is_entrance then
       current_signal:change_signal(nil) -- can swap these two around or have both rail. Current (chain followed by none) is optimal.
@@ -310,8 +314,23 @@ function Signal:clear_exit(max_train_length, visited_signals)
         self:change_signal("rail-chain-signal")
         return
       end
-      current_signal:change_signal(nil)
+      if distance_left == 0 then
+        current_signal:clean_up_long_stretch("front")
+        return
+      else
+        current_signal:change_signal(nil)
+      end
     end
+  end
+  -- we find the next signal to clean up long stretch on that one
+  while true do
+    if current_signal.is_entrance or current_signal.is_exit then return end
+    if current_signal.current_signal then
+      current_signal:clean_up_long_stretch("front")
+    end
+    if #current_signal.signals_front ~= 1 or #current_signal.signals_back > 1 or current_signal.is_entrance or current_signal.is_exit then return end
+    current_signal = current_signal.signals_front[1]
+    if current_signal.visited_clean_up_long["front"] then return end
   end
 end
 
@@ -326,7 +345,7 @@ function Signal:clean_up_long_stretch(direction, max_distance, bidirectional)
     end
     local next_signals = direction == "front" and self.signals_front or self.signals_back
     for _, next_signal in pairs(next_signals) do
-      next_signal:clean_up_long_stretch(direction, max_distance, true)
+      next_signal:clean_up_long_stretch(direction, nil, true)
     end
     return
   end
@@ -369,7 +388,7 @@ function Signal:clean_up_long_stretch(direction, max_distance, bidirectional)
         last_possible_signal = current_signal
         distance_since_last_possible = 0
       else
-        distance_left = max_distance
+        distance_left = current_signal.rail_signal_distance
       end
     end
   end

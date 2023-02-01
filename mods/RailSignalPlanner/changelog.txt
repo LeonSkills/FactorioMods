@@ -9,10 +9,13 @@ Date: 2023-02-01
   Gui:
     - If there are no more buttons in the top left menu when removing the rsp menu button then the bar is removed
     - Menu button now uses the same style as GUI Unifyer mod
+  Changes:
+    - Changed the order how long stretches are signalled. It now starts counting in the order exits > existing signals > entrances > others
   Bugfixes:
     - Fixed the menu closing when switching rail type
     - Fixed pressing Z when cursor was outside of reach distance not clearing the planner
     - Fixed error when trying to remove the menu button through settings
+    - Fixed some distances being one length off (< vs <= issues)
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.1
 Date: 2023-01-31
