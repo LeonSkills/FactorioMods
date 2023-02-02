@@ -1,4 +1,5 @@
 require("scripts/settings")
+require("api")
 
 Signal = {}
 Signal.all_signals = {}
