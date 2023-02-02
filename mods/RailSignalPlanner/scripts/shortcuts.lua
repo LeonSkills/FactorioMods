@@ -8,7 +8,7 @@ end
 local function destroy_planner(event)
   if not event.player_index then return end
   local player = game.players[event.player_index]
-  if player.cursor_stack and player.cursor_stack.name == "rail-signal-planner" then
+  if player.cursor_stack and player.cursor_stack.valid and player.cursor_stack.name == "rail-signal-planner" then
     player.cursor_stack.clear()
   end
 end

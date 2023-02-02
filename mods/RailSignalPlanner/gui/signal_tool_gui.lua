@@ -384,9 +384,8 @@ script.on_event(defines.events.on_gui_checked_state_changed, on_gui_elem_changed
 -- toggle the menu button
 local function on_runtime_mod_setting_changed(event)
   local player = game.players[event.player_index]
-  if event.setting == "gu_button_style_setting" then
-    refresh_button(player)
-  elseif event.setting == "rsp-toggle-menu-icon" then
+  refresh_button(player)
+  if event.setting == "rsp-toggle-menu-icon" then
     if settings.get_player_settings(event.player_index)["rsp-toggle-menu-icon"].value then
       add_setting_button(player)
     else

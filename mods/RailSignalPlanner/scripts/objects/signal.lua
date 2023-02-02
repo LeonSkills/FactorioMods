@@ -3,6 +3,7 @@ require("scripts/settings")
 Signal = {}
 Signal.all_signals = {}
 
+
 function Signal:new(position, direction, surface, player, length, rail)
   local id = create_unique_id(position, direction)
   local signal = Signal.all_signals[id]
@@ -37,17 +38,24 @@ function Signal:construct(position, direction, surface, player, length, rail)
   obj.rails = {[entity_id(rail)] = rail}
   obj.planner = Rail.planners[rail.name]
   obj.can_change = false
-  if rail.name ~= "invisible_rail" and rail.name ~= "bridge_crossing" then
+  if not obj.planner and get_supported_rail(rail.name) then
+    obj.planner = get_supported_rail(rail.name)
+  end
+  if obj.planner then
     obj.can_change = true
     obj.signal_entities = {}
     obj.signal_entities["rail-signal"] = Signal.settings.rail_signal_item[obj.planner]
     obj.signal_entities["rail-chain-signal"] = Signal.settings.rail_chain_signal_item[obj.planner]
+    if not obj.signal_entities["rail-signal"] or not obj.signal_entities["rail-chain-signal"] then
+      obj.can_change = false
+    end
   end
-  obj.rail_signal_distance = Signal.settings.rail_signal_distance[obj.planner]
-  obj.train_length = Signal.settings.train_length[obj.planner]
+  obj.rail_signal_distance = Signal.settings.rail_signal_distance[obj.planner] or 0
+  obj.train_length = Signal.settings.train_length[obj.planner] or 0
   obj:get_original_signal()
   obj.invalid = false
   obj.visited_clean_up_long = {}
+  obj.visited_place_signal_everywhere = {}
 
   obj.neighbouring_signals = {} -- signal entities that neighbour these
   return obj
@@ -203,6 +211,7 @@ function Signal:change_signal(type)
   end
   if not self.signal_entities then return end
   local signal_name = self.signal_entities[type]
+
   if self.current_signal then
     if self.current_signal.name == signal_name and (self.twin.current_signal == nil or self.twin.current_signal.type == type) then return end
     self.current_signal.destroy{raise_destroy=false}
@@ -234,26 +243,34 @@ function Signal:change_signal(type)
   end
 end
 
-function Signal:place_signal_everywhere(direction)
+function Signal:place_signal_everywhere(dir)
   -- We place a signal everywhere where possible to detect merges/splits/intersections later
   -- To reduce the amount of gaps of 3 as much as possible we propagate this functions forwards and backwards first
-  if self.visited_place_signal_everywhere then return end
-  self.visited_place_signal_everywhere = true
-  if self.can_be_used then
-    if self.twin.can_be_used then
-      self:change_signal("rail-chain-signal")
-    elseif not self.current_signal then
-      self:change_signal("rail-signal")
-    end
+  local signals_to_check = {front = {}, back = {}}
+  if not self.visited_place_signal_everywhere["front"] and dir ~= "back" then
+    signals_to_check["front"] = {self}
   end
-  if direction ~= "back" then
-    for _, signal in pairs(self.signals_front) do
-      signal:place_signal_everywhere("front")
-    end
+  if not self.visited_place_signal_everywhere["back"] and dir ~= "front" then
+    signals_to_check["back"] = {self}
   end
-  if direction ~= "front" then
-    for _, signal in pairs(self.signals_back) do
-      signal:place_signal_everywhere("back")
+  while #signals_to_check.front > 0 or #signals_to_check.back > 0 do
+    for _, direction in pairs({"front", "back"}) do
+      while #signals_to_check[direction] > 0 do
+        local current_signal = table.remove(signals_to_check[direction], 1)
+        if current_signal.visited_place_signal_everywhere[direction] then goto continue end
+        current_signal.visited_place_signal_everywhere[direction] = true
+        if current_signal.can_be_used then
+          if current_signal.twin.can_be_used then
+            current_signal:change_signal("rail-chain-signal")
+          elseif not current_signal.current_signal then
+            current_signal:change_signal("rail-signal")
+          end
+        end
+        for _, signal in pairs(direction == "front" and current_signal.signals_front or current_signal.signals_back) do
+          table.insert(signals_to_check[direction], signal)
+        end
+        ::continue::
+      end
     end
   end
 end

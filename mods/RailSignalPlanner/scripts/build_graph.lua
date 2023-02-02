@@ -136,6 +136,9 @@ local function add_neighbouring_blocks(player)
       local signal = outbound_signal[1]
       local previous_distance = outbound_signal[2]
       local planner = Rail.planners[signal.get_connected_rails()[1].name]
+      if not planner then
+        planner = "rail"
+      end
       if signal.type == "rail-chain-signal" or previous_distance > Signal.settings.train_length[planner] then
         add_rail_up_to_signal(signal, player, "front")
       else

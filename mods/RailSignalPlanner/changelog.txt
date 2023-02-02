@@ -1,4 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.2.3
+Date: 2023-02-01
+  Changes:
+    - Changed the order it signals long stretches again to have the starting priority as exits > entrances > existing signals > others
+  Optimizations:
+    - Unwound a large recursive call when placing signals
+  Bugfixes:
+    - Fixed settings button tooltip not updating when controls change
+    - Fixed crash when a rail does not have an attached rail or rail chain signal
+    - Fixed a bug when trying to drop an item when the cursor stack is not valid
+  Scripting:
+    - Added option for other mods to add support for custom rails to the planner using `remote.call("RailSignalPlanner", "add_supported_rail", rail_name, rail_planner_name?)`
+---------------------------------------------------------------------------------------------------
 Version: 1.2.2
 Date: 2023-02-01
   Features:
@@ -8,7 +21,7 @@ Date: 2023-02-01
     - Right click on the menu button now puts Rail signal planner item in your cursor
   Gui:
     - If there are no more buttons in the top left menu when removing the rsp menu button then the bar is removed
-    - Menu button now uses the same style as GUI Unifyer mod
+    - Menu button now uses the same style as GUI Unifyer mod if installed.
   Changes:
     - Changed the order how long stretches are signalled. It now starts counting in the order exits > existing signals > entrances > others
   Bugfixes:

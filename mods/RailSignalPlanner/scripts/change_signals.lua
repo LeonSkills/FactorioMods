@@ -49,15 +49,14 @@ local function change_signal_on_long_stretches(player)
       end
     end
   end
-  local signals_to_check = original_signals_to_check
-  for _, signal in pairs(original_signals_to_check) do
-    signal:clean_up_long_stretch("front")
-    signal:clean_up_long_stretch("back")
-  end
   for _, signal in pairs(entrances_to_check) do
     for _, back_signal in pairs(signal.signals_back) do
       back_signal:clean_up_long_stretch("back", back_signal.rail_signal_distance - back_signal.length)
     end
+  end
+  for _, signal in pairs(original_signals_to_check) do
+    signal:clean_up_long_stretch("front")
+    signal:clean_up_long_stretch("back")
   end
   for _, signal in pairs(other_signals_to_check) do
     if not signal.visited_clean_up_long["front"] and not signal.visited_clean_up_long["back"] then

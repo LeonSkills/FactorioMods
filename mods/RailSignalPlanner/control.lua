@@ -75,15 +75,6 @@ local built_rails = {}
 local function on_built_entity(event)
   local player = game.players[event.player_index]
   local entity = event.created_entity
-  -- if entity.type == "straight-rail" then
-  --   local position = entity.position
-  --   local surface = entity.surface
-  --   local signal_position = {x = position.x + 1.5, y = position.y - 0.5}
-  --   entity.destroy()
-  --   surface.create_entity{name="straight-rail", position=position, force=player.force, player=player}
-  --   surface.create_entity{name="rail-signal", position=signal_position, force=player.force, player=player, direction=defines.direction.south}
-  --   return
-  -- end
   if entity.type == "straight-rail" or entity.type == "curved-rail" then
     if not get_setting("place_signals_with_rail_planner", player) then return end
     if built_rails[event.player_index] == nil then
@@ -142,7 +133,7 @@ end
 script.on_event(defines.events.on_built_entity, on_built_entity)
 script.on_event(defines.events.on_tick, on_tick)
 
--- functionality when selecing items with the tool
+-- functionality when selecting items with the tool
 
 local function on_player_selected_area(event, alt_mode)
   local item = event.item
