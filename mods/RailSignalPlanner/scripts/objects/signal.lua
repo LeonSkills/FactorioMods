@@ -380,7 +380,6 @@ function Signal:clean_up_long_stretch(direction, max_distance, bidirectional)
     local next_signals = direction == "front" and current_signal.signals_front or current_signal.signals_back
     if #next_signals == 0 then return end
     if #next_signals > 1 then
-      self.player.print("Long stretch contains a branch, should not happen. Please report to mod author", {1, 0, 0})
       return
     end
     cur_length = direction == "front" and current_signal.length or next_signals[1].length

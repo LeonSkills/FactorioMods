@@ -6,7 +6,6 @@ Date: 2023-02-01
   Optimizations:
     - Unwound a large recursive call when placing signals
   Bugfixes:
-    - Fixed settings button tooltip not updating when controls change
     - Fixed crash when a rail does not have an attached rail or rail chain signal
     - Fixed a bug when trying to drop an item when the cursor stack is not valid
   Scripting:

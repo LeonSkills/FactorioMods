@@ -90,6 +90,7 @@ local function on_gui_click(event)
     toggle_signal_ui(event.player_index)
     toggle_signal_ui(event.player_index)
   elseif event.element.name == "rsp_button" or event.element.name == "rsp_close_setting_interface" then
+    refresh_button(player)
     if event.button == defines.mouse_button_type.right and event.element.name == "rsp_button" then
       player.clear_cursor()
       local inventory = player.get_main_inventory()
