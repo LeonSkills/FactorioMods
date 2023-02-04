@@ -41,7 +41,6 @@ local function initialize_settings(player, invert_bidirectional_setting)
 end
 
 local function build_signals(rails, player, using_rail_planner, invert_bidirectional_setting)
-  rendering.clear()
   if #rails == 0 then return end
   initialize_settings(player, invert_bidirectional_setting)
 
