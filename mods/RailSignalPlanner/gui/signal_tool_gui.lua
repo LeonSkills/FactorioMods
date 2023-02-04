@@ -189,6 +189,7 @@ function toggle_signal_ui(player_index)
   tabbed_pane.style.minimal_width=220
 
   for _, rail_planner in pairs(rail_planners) do
+    if rail_planner.has_flag("hidden") then goto continue end
     i = i + 1
     local tab = tabbed_pane.add{type="tab", name=rail_planner.name .. "_planner_button", tooltip = rail_planner.localised_name, resize_to_sprite=true}
     tab.style.horizontally_squashable = false
@@ -219,6 +220,7 @@ function toggle_signal_ui(player_index)
       tabbed_pane.selected_tab_index = i
       flow = tab_flow
     end
+    ::continue::
   end
   local chain_signal = get_setting("rail_chain_signal_item", player, current_opened_rail)
   if not game.entity_prototypes[chain_signal] then
@@ -384,6 +386,7 @@ script.on_event(defines.events.on_gui_checked_state_changed, on_gui_elem_changed
 
 -- toggle the menu button
 local function on_runtime_mod_setting_changed(event)
+  if not event.player_index then return end
   local player = game.players[event.player_index]
   refresh_button(player)
   if event.setting == "rsp-toggle-menu-icon" then

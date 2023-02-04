@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.2.6
+Date: 2023-02-04
+  - Changes
+    - Removed hidden rail planners from the UI (Affects for example the ghost on water mod)
+  - Bugfixes
+    - Fixed crash when a mod changed settings via script
+---------------------------------------------------------------------------------------------------
 Version: 1.2.5
 Date: 2023-02-04
   - Bugfixes
