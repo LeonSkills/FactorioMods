@@ -21,7 +21,7 @@ data:extend({
     stackable = false,
     subgroup = "tool",
     show_in_library = true,
-    flags = {"mod-openable", "spawnable"},
+    flags = {"only-in-cursor", "spawnable"},
     entity_type_filters = {"straight-rail", "curved-rail"},
     alt_entity_type_filters = {"straight-rail", "curved-rail"},
     reverse_entity_type_filters = {"rail-signal", "rail-chain-signal"},
@@ -42,8 +42,6 @@ data:extend({
       {"item-description.rsp-cancel-construction-jobs", "__CONTROL_RIGHT_CLICK__"},
       line_start,
       {"item-description.rsp-drag-to-deconstruct", "__CONTROL_KEY_SHIFT__ __CONTROL_STYLE_BEGIN__+__CONTROL_STYLE_END__ __CONTROL_RIGHT_CLICK__"},
-      line_start,
-      {"gui.instruction-to-destroy", "__CONTROL__drop-cursor__"},
       font_end,
     }
   },
@@ -52,7 +50,22 @@ data:extend({
     type = "shortcut",
     order = "b[blueprints]-s[rail-signal-planner]",
     action = "spawn-item",
-    localised_name = {"controls.give-rail-signal-planner"},
+    localised_name = {"",
+      {"controls.give-rail-signal-planner"},
+      "\n",
+      font_start,
+      {"gui.instruction-when-in-cursor"},
+      ":",
+      line_start,
+      {"item-description.rsp-regular-behaviour", "__CONTROL_LEFT_CLICK__"},
+      line_start,
+      {"item-description.rsp-alt-behaviour",  "__CONTROL_KEY_SHIFT__ __CONTROL_STYLE_BEGIN__+__CONTROL_STYLE_END__ __CONTROL_LEFT_CLICK__", {"rsp-gui.force-unidirectional"}},
+      line_start,
+      {"item-description.rsp-cancel-construction-jobs", "__CONTROL_RIGHT_CLICK__"},
+      line_start,
+      {"item-description.rsp-drag-to-deconstruct", "__CONTROL_KEY_SHIFT__ __CONTROL_STYLE_BEGIN__+__CONTROL_STYLE_END__ __CONTROL_RIGHT_CLICK__"},
+      font_end,
+    },
     item_to_spawn = "rail-signal-planner",
     icon = {
       filename = "__RailSignalPlanner__/graphics/icons/rail-signal-shortcut.png",
@@ -65,7 +78,7 @@ data:extend({
   {
     name = "give-rail-signal-planner",
     type = "custom-input",
-    key_sequence = "ALT + S",
+    key_sequence = "CONTROL + P",
     action = "spawn-item",
     item_to_spawn = "rail-signal-planner",
     consuming = "game-only",
@@ -74,29 +87,23 @@ data:extend({
   {
     name = "rsp-open-menu",
     type = "custom-input",
-    key_sequence = "SHIFT + S",
+    key_sequence = "SHIFT + P",
     consuming = "game-only",
     order = "a"
   },
   {
     name = "rsp-toggle-place-signals-with-planner",
     type = "custom-input",
-    key_sequence = "CONTROL + SHIFT + S",
+    key_sequence = "CONTROL + SHIFT + P",
     consuming = "game-only",
     order = "c"
   },
   {
     name = "rsp-toggle-unidirectional",
     type = "custom-input",
-    key_sequence = "CONTROL + S",
+    key_sequence = "ALT + P",
     consuming = "game-only",
     order = "d"
-  },
-  {
-    name = "rsp-drop-planner",
-    type = "custom-input",
-    key_sequence = "",
-    linked_game_control = "drop-cursor",
   },
   { -- These two are there because on_mod_item_opened and on_gui_closed fire both on right click. We are keeping track of the closed state of the menu when E and Escape are pressed
   name = "rsp-close-menu-escape",

@@ -5,13 +5,17 @@ local function signal_direction_error_handler(err, player, signal, original_rail
   err_string = err or ""
   -- Handler for if an error occurred, check if because of conflicting directions or two way
   if err_string:match("Inconsistent signals") then
-    local locale = Signal.unidirectional and {"rail-signal-tool.not-unidirectional"} or {"rail-signal-tool.conflicting-directions"}
     if get_setting("force_build_rails", player) then return true end
     rendering.draw_circle{target=signal.position, color={1,0,0}, width=2, radius=0.6, surface=signal.surface, time_to_live=150}
     if signal.twin.current_signal then
       rendering.draw_circle{target=signal.twin.position, color={1,0,0}, width=2, radius=0.6, surface=signal.surface, time_to_live=150}
     end
-    player.create_local_flying_text{text = locale, position=original_rail.position, time_to_live=150, speed=0.6}
+    local locale = Signal.unidirectional and {"rail-signal-tool.not-unidirectional"} or {"rail-signal-tool.conflicting-directions"}
+    if original_rail.valid then
+      player.create_local_flying_text{text = locale, position=original_rail.position, time_to_live=150, speed=0.6}
+    else
+      player.create_local_flying_text{text = locale, position=signal.position, time_to_live=150, speed=0.6}
+    end
     return
   end
   error("An error occurred when marking signal directions: ".. err_string)
