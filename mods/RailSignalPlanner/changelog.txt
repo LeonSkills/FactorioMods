@@ -1,28 +1,28 @@
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.7
 Date: 2023-02-06
-  - Changes
+  Changes:
     - Removed ability to place the planner in your inventory. It now behaves the same as copy and paste tools ("only-in-cursor"). Settings can still be opened through the top left menu button or shortcut (default now SHIFT + P)
     - Moved all default shortcuts from <Modifier key> + S to <Modifier key> + P, so it does interfere with running south while holding one of the modifier keys. Controls can be changed similar to all vanilla controls.
     - Made left click the default behaviour of creating the planner when click on the top left button. Right click opens the settings.
-  - Bugfixes
+  Bugfixes:
     - Fixed a crash when creating a rail with invalid direction when the rail itself was also already invalid
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.6
 Date: 2023-02-04
-  - Changes
+  Changes:
     - Removed hidden rail planners from the UI (Affects for example the ghost on water mod)
-  - Bugfixes
+  Bugfixes:
     - Fixed crash when a mod changed settings via script
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.5
 Date: 2023-02-04
-  - Bugfixes
+  Bugfixes:
     - Fixed accidentally removing renderings from other mods
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.4
 Date: 2023-02-03
-  - Bugfixes
+  Bugfixes:
     - Fixed a bug when trying to drop an item when the cursor stack was not valid for read
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.3
