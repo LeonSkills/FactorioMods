@@ -78,7 +78,7 @@ data:extend({
   {
     name = "give-rail-signal-planner",
     type = "custom-input",
-    key_sequence = "CONTROL + P",
+    key_sequence = "ALT + P",
     action = "spawn-item",
     item_to_spawn = "rail-signal-planner",
     consuming = "game-only",
@@ -101,7 +101,7 @@ data:extend({
   {
     name = "rsp-toggle-unidirectional",
     type = "custom-input",
-    key_sequence = "ALT + P",
+    key_sequence = "CONTROL + P",
     consuming = "game-only",
     order = "d"
   },

@@ -4,7 +4,6 @@ Date: 2023-02-06
   - Changes
     - Removed ability to place the planner in your inventory. It now behaves the same as copy and paste tools ("only-in-cursor"). Settings can still be opened through the top left menu button or shortcut (default now SHIFT + P)
     - Moved all default shortcuts from <Modifier key> + S to <Modifier key> + P, so it does interfere with running south while holding one of the modifier keys. Controls can be changed similar to all vanilla controls.
-    - Moved creating a planner to CONTROL + P, toggling one way is now ALT + P. I think those defaults make more sense (again, same with CONTROL + C/V being copy/paste tools.
     - Made left click the default behaviour of creating the planner when click on the top left button. Right click opens the settings.
   - Bugfixes
     - Fixed a crash when creating a rail with invalid direction when the rail itself was also already invalid
