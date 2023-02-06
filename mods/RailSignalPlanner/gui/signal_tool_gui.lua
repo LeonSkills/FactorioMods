@@ -17,11 +17,11 @@ function refresh_button(player)
     flow.rsp_button.style = style
     local tooltip = {
       "",
-      {"controls.give-rail-signal-planner"},
-      {"controls.rsp-custom-control", "__CONTROL_LEFT_CLICK__, __CONTROL__give-rail-signal-planner__"},
-      "\n",
       {"rsp-gui.rsp-menu-button-tooltip"},
-      {"controls.rsp-custom-control", "__CONTROL_RIGHT_CLICK__, __CONTROL__rsp-open-menu__"},
+      {"controls.rsp-custom-control", "__CONTROL_LEFT_CLICK__, __CONTROL__rsp-open-menu__"},
+      "\n",
+      {"controls.give-rail-signal-planner"},
+      {"controls.rsp-custom-control", "__CONTROL_RIGHT_CLICK__, __CONTROL__give-rail-signal-planner__"},
     }
     flow.rsp_button.tooltip = tooltip
   end
@@ -48,6 +48,7 @@ local function add_setting_button(player)
   local flow = get_button_flow(player)
   if flow.rsp_flow then flow.rsp_flow.destroy() end --legacy
   if flow.rsp_button then flow.rsp_button.destroy() end
+
   flow.add{type="sprite-button", name="rsp_button", sprite="item/rail-signal"}
   refresh_button(player)
 end
@@ -90,7 +91,7 @@ local function on_gui_click(event)
     toggle_signal_ui(event.player_index)
   elseif event.element.name == "rsp_button" or event.element.name == "rsp_close_setting_interface" then
     refresh_button(player)
-    if event.button == defines.mouse_button_type.left and event.element.name == "rsp_button" then
+    if event.button == defines.mouse_button_type.right and event.element.name == "rsp_button" then
       player.clear_cursor()
       local inventory = player.get_main_inventory()
       local item_stack = inventory.find_item_stack("rail-signal-planner")
