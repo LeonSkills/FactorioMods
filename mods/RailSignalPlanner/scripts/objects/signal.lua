@@ -442,38 +442,45 @@ function Signal:restore_signal(should_revive)
     new_type = self.current_signal.type
     new_name = self.current_signal.name or self.current_signal.type
     self.current_signal.destroy {raise_destroy = false}
+    self.current_signal = nil
   end
   if orig then
-    local orig_entity
     if orig.is_ghost then
       if has_new_signal then
         self.current_signal.destroy {raise_destroy = true}
+        self.current_signal = nil
         self.current_signal = self.surface.create_entity {name = "entity-ghost", inner_name = new_name, position = self.position, direction = self.direction, force = player.force, player = player, raise_built = true}
       end
       goto continue
     else
-      orig_entity = self.surface.create_entity {name = orig.name, position = self.position, direction = self.direction, force = player.force, player = orig.last_user, raise_built = false, create_build_effect_smoke = false}
-      orig_entity.health = orig.health
-      self.current_signal = orig_entity
+      self.current_signal = self.surface.create_entity {name = orig.name, position = self.position, direction = self.direction, force = player.force, player = orig.last_user, raise_built = false, create_build_effect_smoke = false}
+      self.current_signal.health = orig.health
     end
     if has_new_signal then
       if new_name ~= orig.name then
-        local can_be_upgraded = orig_entity.order_upgrade {force = player.force, target = new_name, player = player}
+        local can_be_upgraded = self.current_signal.order_upgrade {force = player.force, target = new_name, player = player}
         if not can_be_upgraded then
-          orig_entity.order_deconstruction(player.force, player)
+          self.current_signal.order_deconstruction(player.force, player)
           self.current_signal = self.surface.create_entity {"entity-ghost", inner_name = new_name, position = self.position, direction = self.direction, force = player.force, player = player, raise_built = true}
           goto continue
         end
+        if not self.current_signal.valid then
+          -- might have been upgraded already by a creative mod listening to on_marked_for_upgrade
+          self.current_signal = nil
+        end
       end
     else
-      orig_entity.order_deconstruction(player.force, player)
+      self.current_signal.order_deconstruction(player.force, player)
+      if not self.current_signal.valid then
+        -- might have been removed by a creative mod listening to on_marked_for_deconstruction
+        self.current_signal = nil
+      end
     end
   elseif has_new_signal then
     self.current_signal = self.surface.create_entity {name = "entity-ghost", inner_name = new_name, position = self.position, direction = self.direction, force = player.force, player = player, raise_built = true}
   end
   :: continue ::
-  if should_revive and self.current_signal and distance(self.position,
-                                                        player.position) <= 3 * player.reach_distance then
+  if should_revive and self.current_signal and distance(self.position, player.position) <= 3 * player.reach_distance then
     local inventory = player.get_inventory(defines.inventory.character_main) or player.get_inventory(defines.inventory.god_main)
     if not inventory then return end
     if self.current_signal.to_be_deconstructed() then
