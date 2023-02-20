@@ -13,9 +13,9 @@ function Rail:new(entity, player)
     end
     return rail
   end
-  local rail = Rail:construct(entity, player)
-  Rail.all_rails[rail.id] = rail
-  return rail
+  local rail_object = Rail:construct(entity, player)
+  Rail.all_rails[rail_object.id] = rail_object
+  return rail_object
 end
 
 function Rail:construct(entity, player)
@@ -85,8 +85,8 @@ function Rail:connect_rails()
   end
   self.visited_connect_rail = true
   for _, rail_connection_direction in pairs({"left", "straight", "right"}) do
-    local connected_rail_front = self.entity.get_connected_rail{rail_direction=defines.rail_direction.front, rail_connection_direction=defines.rail_connection_direction[rail_connection_direction]}
-    local connected_rail_back = self.entity.get_connected_rail{rail_direction=defines.rail_direction.back, rail_connection_direction=defines.rail_connection_direction[rail_connection_direction]}
+    local connected_rail_front = self.entity.get_connected_rail {rail_direction = defines.rail_direction.front, rail_connection_direction = defines.rail_connection_direction[rail_connection_direction]}
+    local connected_rail_back = self.entity.get_connected_rail {rail_direction = defines.rail_direction.back, rail_connection_direction = defines.rail_connection_direction[rail_connection_direction]}
 
     if connected_rail_front then
       local rail_obj = Rail.all_rails[entity_id(connected_rail_front)]
@@ -125,7 +125,7 @@ end
 function Rail:initialize_signals()
   -- For the two or four signals of this rail, create the signal object with position, direction and length
   local positions = {}
-  local curve_length = 7.55 - math.sqrt(2)/2
+  local curve_length = 7.55 - math.sqrt(2) / 2
   local rail = self.entity
   local r_x = rail.position.x
   local r_y = rail.position.y
@@ -135,84 +135,132 @@ function Rail:initialize_signals()
     if rail.direction == defines.direction.east then
       -- game.print("Straight east")
       self.signals.back = {}
-      self.signals.front.left = Signal:new({x = r_x - 0.5, y = r_y + 1.5}, defines.direction.west, self.entity.surface, self.player, 1, rail)
-      self.signals.front.right = Signal:new({x = r_x + 0.5, y = r_y - 1.5}, defines.direction.east, self.entity.surface, self.player, 1, rail)
-      self.signals.back.left = Signal:new({x = r_x + 0.5, y = r_y + 1.5}, defines.direction.west, self.entity.surface, self.player, 1, rail)
-      self.signals.back.right = Signal:new({x = r_x - 0.5, y = r_y - 1.5}, defines.direction.east, self.entity.surface, self.player, 1, rail)
+      self.signals.front.left = Signal:new({x = r_x - 0.5, y = r_y + 1.5}, defines.direction.west, self.entity.surface,
+                                           self.player, 1, rail)
+      self.signals.front.right = Signal:new({x = r_x + 0.5, y = r_y - 1.5}, defines.direction.east, self.entity.surface,
+                                            self.player, 1, rail)
+      self.signals.back.left = Signal:new({x = r_x + 0.5, y = r_y + 1.5}, defines.direction.west, self.entity.surface,
+                                          self.player, 1, rail)
+      self.signals.back.right = Signal:new({x = r_x - 0.5, y = r_y - 1.5}, defines.direction.east, self.entity.surface,
+                                           self.player, 1, rail)
     elseif rail.direction == defines.direction.north then
       -- game.print("Straight north")
       self.signals.back = {}
-      self.signals.front.left = Signal:new({x = r_x + 1.5, y = r_y + 0.5}, defines.direction.south, self.entity.surface, self.player, 1, rail)
-      self.signals.front.right = Signal:new({x = r_x - 1.5, y = r_y - 0.5}, defines.direction.north, self.entity.surface, self.player, 1, rail)
-      self.signals.back.left = Signal:new({x = r_x + 1.5, y = r_y - 0.5}, defines.direction.south, self.entity.surface, self.player, 1, rail)
-      self.signals.back.right = Signal:new({x = r_x - 1.5, y = r_y + 0.5}, defines.direction.north, self.entity.surface, self.player, 1, rail)
+      self.signals.front.left = Signal:new({x = r_x + 1.5, y = r_y + 0.5}, defines.direction.south, self.entity.surface,
+                                           self.player, 1, rail)
+      self.signals.front.right = Signal:new({x = r_x - 1.5, y = r_y - 0.5}, defines.direction.north,
+                                            self.entity.surface, self.player, 1, rail)
+      self.signals.back.left = Signal:new({x = r_x + 1.5, y = r_y - 0.5}, defines.direction.south, self.entity.surface,
+                                          self.player, 1, rail)
+      self.signals.back.right = Signal:new({x = r_x - 1.5, y = r_y + 0.5}, defines.direction.north, self.entity.surface,
+                                           self.player, 1, rail)
     elseif rail.direction == defines.direction.northeast then
       -- game.print("Straight northeast")
-      self.signals.front.left = Signal:new({x = r_x + 1.5, y = r_y - 1.5}, defines.direction.southeast, self.entity.surface, self.player, math.sqrt(2), rail)
-      self.signals.front.right = Signal:new({x = r_x - 0.5, y = r_y + 0.5}, defines.direction.northwest, self.entity.surface, self.player, math.sqrt(2), rail)
+      self.signals.front.left = Signal:new({x = r_x + 1.5, y = r_y - 1.5}, defines.direction.southeast,
+                                           self.entity.surface, self.player, math.sqrt(2), rail)
+      self.signals.front.right = Signal:new({x = r_x - 0.5, y = r_y + 0.5}, defines.direction.northwest,
+                                            self.entity.surface, self.player, math.sqrt(2), rail)
     elseif rail.direction == defines.direction.southwest then
       -- game.print("Straight southwest")
-      self.signals.front.left = Signal:new({x = r_x - 1.5, y = r_y + 1.5}, defines.direction.northwest, self.entity.surface, self.player, math.sqrt(2), rail)
-      self.signals.front.right = Signal:new({x = r_x + 0.5, y = r_y - 0.5}, defines.direction.southeast, self.entity.surface, self.player, math.sqrt(2), rail)
+      self.signals.front.left = Signal:new({x = r_x - 1.5, y = r_y + 1.5}, defines.direction.northwest,
+                                           self.entity.surface, self.player, math.sqrt(2), rail)
+      self.signals.front.right = Signal:new({x = r_x + 0.5, y = r_y - 0.5}, defines.direction.southeast,
+                                            self.entity.surface, self.player, math.sqrt(2), rail)
     elseif rail.direction == defines.direction.southeast then
       -- game.print("Straight southeast")
-      self.signals.front.left = Signal:new({x = r_x + 1.5, y = r_y + 1.5}, defines.direction.southwest, self.entity.surface, self.player, math.sqrt(2), rail)
-      self.signals.front.right = Signal:new({x = r_x - 0.5, y = r_y - 0.5}, defines.direction.northeast, self.entity.surface, self.player, math.sqrt(2), rail)
+      self.signals.front.left = Signal:new({x = r_x + 1.5, y = r_y + 1.5}, defines.direction.southwest,
+                                           self.entity.surface, self.player, math.sqrt(2), rail)
+      self.signals.front.right = Signal:new({x = r_x - 0.5, y = r_y - 0.5}, defines.direction.northeast,
+                                            self.entity.surface, self.player, math.sqrt(2), rail)
     elseif rail.direction == defines.direction.northwest then
       -- game.print("Straight northwest")
-      self.signals.front.left = Signal:new({x = r_x - 1.5, y = r_y - 1.5}, defines.direction.northeast, self.entity.surface, self.player, math.sqrt(2), rail)
-      self.signals.front.right = Signal:new({x = r_x + 0.5, y = r_y + 0.5}, defines.direction.southwest, self.entity.surface, self.player, math.sqrt(2), rail)
+      self.signals.front.left = Signal:new({x = r_x - 1.5, y = r_y - 1.5}, defines.direction.northeast,
+                                           self.entity.surface, self.player, math.sqrt(2), rail)
+      self.signals.front.right = Signal:new({x = r_x + 0.5, y = r_y + 0.5}, defines.direction.southwest,
+                                            self.entity.surface, self.player, math.sqrt(2), rail)
     end
   else
     self.signals.back = {}
     if rail.direction == defines.direction.north then
       -- game.print("North")
-      self.signals.front.left = Signal:new({x = r_x - 2.5, y = r_y - 1.5}, defines.direction.northwest, self.entity.surface, self.player, curve_length, rail)
-      self.signals.front.right = Signal:new({x = r_x + 2.5, y = r_y + 3.5}, defines.direction.south, self.entity.surface, self.player, curve_length, rail)
-      self.signals.back.left = Signal:new({x = r_x - 0.5, y = r_y + 3.5}, defines.direction.north, self.entity.surface, self.player, 1, rail)
-      self.signals.back.right = Signal:new({x = r_x - 0.5, y = r_y - 3.5}, defines.direction.southeast, self.entity.surface, self.player, 1, rail)
+      self.signals.front.left = Signal:new({x = r_x - 2.5, y = r_y - 1.5}, defines.direction.northwest,
+                                           self.entity.surface, self.player, curve_length, rail)
+      self.signals.front.right = Signal:new({x = r_x + 2.5, y = r_y + 3.5}, defines.direction.south,
+                                            self.entity.surface, self.player, curve_length, rail)
+      self.signals.back.left = Signal:new({x = r_x - 0.5, y = r_y + 3.5}, defines.direction.north, self.entity.surface,
+                                          self.player, 1, rail)
+      self.signals.back.right = Signal:new({x = r_x - 0.5, y = r_y - 3.5}, defines.direction.southeast,
+                                           self.entity.surface, self.player, 1, rail)
     elseif rail.direction == defines.direction.northeast then
       -- game.print("NorthEast")
-      self.signals.front.left = Signal:new({x = r_x + 0.5, y = r_y - 3.5}, defines.direction.northeast, self.entity.surface, self.player, curve_length, rail)
-      self.signals.front.right = Signal:new({x = r_x + 0.5, y = r_y + 3.5}, defines.direction.south, self.entity.surface, self.player, curve_length, rail)
-      self.signals.back.left = Signal:new({x = r_x - 2.5, y = r_y + 3.5}, defines.direction.north, self.entity.surface, self.player, 1, rail)
-      self.signals.back.right = Signal:new({x = r_x + 2.5, y = r_y - 1.5}, defines.direction.southwest, self.entity.surface, self.player, 1, rail)
+      self.signals.front.left = Signal:new({x = r_x + 0.5, y = r_y - 3.5}, defines.direction.northeast,
+                                           self.entity.surface, self.player, curve_length, rail)
+      self.signals.front.right = Signal:new({x = r_x + 0.5, y = r_y + 3.5}, defines.direction.south,
+                                            self.entity.surface, self.player, curve_length, rail)
+      self.signals.back.left = Signal:new({x = r_x - 2.5, y = r_y + 3.5}, defines.direction.north, self.entity.surface,
+                                          self.player, 1, rail)
+      self.signals.back.right = Signal:new({x = r_x + 2.5, y = r_y - 1.5}, defines.direction.southwest,
+                                           self.entity.surface, self.player, 1, rail)
     elseif rail.direction == defines.direction.east then
       -- game.print("East")
-      self.signals.front.left = Signal:new({x = r_x + 1.5, y = r_y - 2.5}, defines.direction.northeast, self.entity.surface, self.player, curve_length, rail)
-      self.signals.front.right = Signal:new({x = r_x - 3.5, y = r_y + 2.5}, defines.direction.west, self.entity.surface, self.player, curve_length, rail)
-      self.signals.back.left = Signal:new({x = r_x - 3.5, y = r_y - 0.5}, defines.direction.east, self.entity.surface, self.player, 1, rail)
-      self.signals.back.right = Signal:new({x = r_x + 3.5, y = r_y - 0.5}, defines.direction.southwest, self.entity.surface, self.player, 1, rail)
+      self.signals.front.left = Signal:new({x = r_x + 1.5, y = r_y - 2.5}, defines.direction.northeast,
+                                           self.entity.surface, self.player, curve_length, rail)
+      self.signals.front.right = Signal:new({x = r_x - 3.5, y = r_y + 2.5}, defines.direction.west, self.entity.surface,
+                                            self.player, curve_length, rail)
+      self.signals.back.left = Signal:new({x = r_x - 3.5, y = r_y - 0.5}, defines.direction.east, self.entity.surface,
+                                          self.player, 1, rail)
+      self.signals.back.right = Signal:new({x = r_x + 3.5, y = r_y - 0.5}, defines.direction.southwest,
+                                           self.entity.surface, self.player, 1, rail)
     elseif rail.direction == defines.direction.southeast then
       -- game.print("SouthEast")
-      self.signals.front.left = Signal:new({x = r_x + 3.5, y = r_y + 0.5}, defines.direction.southeast, self.entity.surface, self.player, curve_length, rail)
-      self.signals.front.right = Signal:new({x = r_x - 3.5, y = r_y + 0.5}, defines.direction.west, self.entity.surface, self.player, curve_length, rail)
-      self.signals.back.left = Signal:new({x = r_x - 3.5, y = r_y - 2.5}, defines.direction.east, self.entity.surface, self.player, 1, rail)
-      self.signals.back.right = Signal:new({x = r_x + 1.5, y = r_y + 2.5}, defines.direction.northwest, self.entity.surface, self.player, 1, rail)
+      self.signals.front.left = Signal:new({x = r_x + 3.5, y = r_y + 0.5}, defines.direction.southeast,
+                                           self.entity.surface, self.player, curve_length, rail)
+      self.signals.front.right = Signal:new({x = r_x - 3.5, y = r_y + 0.5}, defines.direction.west, self.entity.surface,
+                                            self.player, curve_length, rail)
+      self.signals.back.left = Signal:new({x = r_x - 3.5, y = r_y - 2.5}, defines.direction.east, self.entity.surface,
+                                          self.player, 1, rail)
+      self.signals.back.right = Signal:new({x = r_x + 1.5, y = r_y + 2.5}, defines.direction.northwest,
+                                           self.entity.surface, self.player, 1, rail)
     elseif rail.direction == defines.direction.south then
       -- game.print("South")
-      self.signals.front.left = Signal:new({x = r_x + 2.5, y = r_y + 1.5}, defines.direction.southeast, self.entity.surface, self.player, curve_length, rail)
-      self.signals.front.right = Signal:new({x = r_x - 2.5, y = r_y - 3.5}, defines.direction.north, self.entity.surface, self.player, curve_length, rail)
-      self.signals.back.left = Signal:new({x = r_x + 0.5, y = r_y - 3.5}, defines.direction.south, self.entity.surface, self.player, 1, rail)
-      self.signals.back.right = Signal:new({x = r_x + 0.5, y = r_y + 3.5}, defines.direction.northwest, self.entity.surface, self.player, 1, rail)
+      self.signals.front.left = Signal:new({x = r_x + 2.5, y = r_y + 1.5}, defines.direction.southeast,
+                                           self.entity.surface, self.player, curve_length, rail)
+      self.signals.front.right = Signal:new({x = r_x - 2.5, y = r_y - 3.5}, defines.direction.north,
+                                            self.entity.surface, self.player, curve_length, rail)
+      self.signals.back.left = Signal:new({x = r_x + 0.5, y = r_y - 3.5}, defines.direction.south, self.entity.surface,
+                                          self.player, 1, rail)
+      self.signals.back.right = Signal:new({x = r_x + 0.5, y = r_y + 3.5}, defines.direction.northwest,
+                                           self.entity.surface, self.player, 1, rail)
     elseif rail.direction == defines.direction.southwest then
       -- game.print("SouthWest")
-      self.signals.front.left = Signal:new({x = r_x - 0.5, y = r_y + 3.5}, defines.direction.southwest, self.entity.surface, self.player, curve_length, rail)
-      self.signals.front.right = Signal:new({x = r_x - 0.5, y = r_y - 3.5}, defines.direction.north, self.entity.surface, self.player, curve_length, rail)
-      self.signals.back.left = Signal:new({x = r_x + 2.5, y = r_y - 3.5}, defines.direction.south, self.entity.surface, self.player, 1, rail)
-      self.signals.back.right = Signal:new({x = r_x - 2.5, y = r_y + 1.5}, defines.direction.northeast, self.entity.surface, self.player, 1, rail)
+      self.signals.front.left = Signal:new({x = r_x - 0.5, y = r_y + 3.5}, defines.direction.southwest,
+                                           self.entity.surface, self.player, curve_length, rail)
+      self.signals.front.right = Signal:new({x = r_x - 0.5, y = r_y - 3.5}, defines.direction.north,
+                                            self.entity.surface, self.player, curve_length, rail)
+      self.signals.back.left = Signal:new({x = r_x + 2.5, y = r_y - 3.5}, defines.direction.south, self.entity.surface,
+                                          self.player, 1, rail)
+      self.signals.back.right = Signal:new({x = r_x - 2.5, y = r_y + 1.5}, defines.direction.northeast,
+                                           self.entity.surface, self.player, 1, rail)
     elseif rail.direction == defines.direction.west then
       -- game.print("West")
-      self.signals.front.left = Signal:new({x = r_x - 1.5, y = r_y + 2.5}, defines.direction.southwest, self.entity.surface, self.player, curve_length, rail)
-      self.signals.front.right = Signal:new({x = r_x + 3.5, y = r_y - 2.5}, defines.direction.east, self.entity.surface, self.player, curve_length, rail)
-      self.signals.back.left = Signal:new({x = r_x + 3.5, y = r_y + 0.5}, defines.direction.west, self.entity.surface, self.player, 1, rail)
-      self.signals.back.right = Signal:new({x = r_x - 3.5, y = r_y + 0.5}, defines.direction.northeast, self.entity.surface, self.player, 1, rail)
+      self.signals.front.left = Signal:new({x = r_x - 1.5, y = r_y + 2.5}, defines.direction.southwest,
+                                           self.entity.surface, self.player, curve_length, rail)
+      self.signals.front.right = Signal:new({x = r_x + 3.5, y = r_y - 2.5}, defines.direction.east, self.entity.surface,
+                                            self.player, curve_length, rail)
+      self.signals.back.left = Signal:new({x = r_x + 3.5, y = r_y + 0.5}, defines.direction.west, self.entity.surface,
+                                          self.player, 1, rail)
+      self.signals.back.right = Signal:new({x = r_x - 3.5, y = r_y + 0.5}, defines.direction.northeast,
+                                           self.entity.surface, self.player, 1, rail)
     elseif rail.direction == defines.direction.northwest then
       -- game.print("NorthWest")
-      self.signals.front.left = Signal:new({x = r_x - 3.5, y = r_y - 0.5}, defines.direction.northwest, self.entity.surface, self.player, curve_length, rail)
-      self.signals.front.right = Signal:new({x = r_x + 3.5, y = r_y - 0.5}, defines.direction.east, self.entity.surface, self.player, curve_length, rail)
-      self.signals.back.left = Signal:new({x = r_x + 3.5, y = r_y + 2.5}, defines.direction.west, self.entity.surface, self.player, 1, rail)
-      self.signals.back.right = Signal:new({x = r_x - 1.5, y = r_y - 2.5}, defines.direction.southeast, self.entity.surface, self.player, 1, rail)
+      self.signals.front.left = Signal:new({x = r_x - 3.5, y = r_y - 0.5}, defines.direction.northwest,
+                                           self.entity.surface, self.player, curve_length, rail)
+      self.signals.front.right = Signal:new({x = r_x + 3.5, y = r_y - 0.5}, defines.direction.east, self.entity.surface,
+                                            self.player, curve_length, rail)
+      self.signals.back.left = Signal:new({x = r_x + 3.5, y = r_y + 2.5}, defines.direction.west, self.entity.surface,
+                                          self.player, 1, rail)
+      self.signals.back.right = Signal:new({x = r_x - 1.5, y = r_y - 2.5}, defines.direction.southeast,
+                                           self.entity.surface, self.player, 1, rail)
     end
   end
   if self.signals.back then
@@ -239,7 +287,7 @@ end
 -- debugging functions
 
 function Rail:debug()
-  rendering.draw_circle{target=self.entity.position, color={1, 0.8, 0}, time_to_live=300, surface=self.entity.surface, radius=0.2, filled=true}
+  rendering.draw_circle {target = self.entity.position, color = {1, 0.8, 0}, time_to_live = 300, surface = self.entity.surface, radius = 0.2, filled = true}
   self:debug_connections()
   self:debug_overlaps()
 end
@@ -255,5 +303,5 @@ end
 
 function Rail:debug_overlaps()
   if not self.entity.valid then return end
-  rendering.draw_text{color={1, 0, self.entity.direction/8}, text = self.num_overlaps, target=self.entity.position, target_offset={(self.entity.direction-4)/4, 0}, time_to_live=300, surface=self.entity.surface}
+  rendering.draw_text {color = {1, 0, self.entity.direction / 8}, text = self.num_overlaps, target = self.entity.position, target_offset = {(self.entity.direction - 4) / 4, 0}, time_to_live = 300, surface = self.entity.surface}
 end

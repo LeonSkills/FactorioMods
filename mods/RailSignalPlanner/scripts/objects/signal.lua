@@ -4,7 +4,6 @@ require("api")
 Signal = {}
 Signal.all_signals = {}
 
-
 function Signal:new(position, direction, surface, player, length, rail)
   local id = create_unique_id(position, direction)
   local signal = Signal.all_signals[id]
@@ -17,9 +16,9 @@ function Signal:new(position, direction, surface, player, length, rail)
     signal.invalid = false
     return signal
   end
-  local signal = Signal:construct(position, direction, surface, player, length, rail)
-  Signal.all_signals[signal.id] = signal
-  return signal
+  local signal_object = Signal:construct(position, direction, surface, player, length, rail)
+  Signal.all_signals[signal_object.id] = signal_object
+  return signal_object
 end
 
 function Signal:construct(position, direction, surface, player, length, rail)
@@ -76,7 +75,7 @@ end
 
 function Signal:get_original_signal()
   -- Find the original signal at the signals location
-  local signals = self.surface.find_entities_filtered{type={"rail-signal", "rail-chain-signal"}, position=self.position, direction=self.direction, force=self.player.force}
+  local signals = self.surface.find_entities_filtered {type = {"rail-signal", "rail-chain-signal"}, position = self.position, direction = self.direction, force = self.player.force}
   if #signals == 1 then
     self.original_signal = {}
     self.original_signal.type = signals[1].type
@@ -90,19 +89,19 @@ function Signal:get_original_signal()
     end
     if self.current_signal.to_be_deconstructed() then
       self.to_be_deconstructed = true
-      self.current_signal.destroy{raise_destroy=false}
+      self.current_signal.destroy {raise_destroy = false}
       self.current_signal = nil
     end
     return
   end
-  local signals = self.surface.find_entities_filtered{ghost_type={"rail-signal", "rail-chain-signal"}, position=self.position, direction=self.direction, force=self.player.force}
-  if #signals == 1 then
+  local ghost_signals = self.surface.find_entities_filtered {ghost_type = {"rail-signal", "rail-chain-signal"}, position = self.position, direction = self.direction, force = self.player.force}
+  if #ghost_signals == 1 then
     self.original_signal = {}
-    self.original_signal.type = signals[1].ghost_type
-    self.original_signal.name = signals[1].ghost_name
-    self.original_signal.last_user = signals[1].last_user
+    self.original_signal.type = ghost_signals[1].ghost_type
+    self.original_signal.name = ghost_signals[1].ghost_name
+    self.original_signal.last_user = ghost_signals[1].last_user
     self.original_signal.is_ghost = true
-    self.current_signal = signals[1]
+    self.current_signal = ghost_signals[1]
     return
   end
 end
@@ -117,7 +116,7 @@ function Signal:set_can_be_used()
 end
 
 function Signal:set_can_not_be_used(mark_twin_can_be_used)
-  local mark_twin_can_be_used = mark_twin_can_be_used == nil and true
+  mark_twin_can_be_used = mark_twin_can_be_used == nil and true
   if self.can_be_used == true then
     error("Inconsistent signals")
   end
@@ -159,7 +158,7 @@ function Signal:mark_allowed(direction)
     for _, next_signal in pairs(next_signals) do
       table.insert(signals_to_check, next_signal)
     end
-    ::continue::
+    :: continue ::
   end
 end
 
@@ -198,10 +197,10 @@ function Signal:change_signal(type)
   if not self.can_change then return end -- This signal is not allowed to be changed (not supported)
   if type == nil then
     if self.current_signal then
-      self.current_signal.destroy{raise_destroy=false}
+      self.current_signal.destroy {raise_destroy = false}
       self.current_signal = nil
       if self.twin.current_signal then
-        self.twin.current_signal.destroy{raise_destroy=false}
+        self.twin.current_signal.destroy {raise_destroy = false}
         self.twin.current_signal = nil
       end
     end
@@ -215,30 +214,30 @@ function Signal:change_signal(type)
 
   if self.current_signal then
     if self.current_signal.name == signal_name and (self.twin.current_signal == nil or self.twin.current_signal.type == type) then return end
-    self.current_signal.destroy{raise_destroy=false}
+    self.current_signal.destroy {raise_destroy = false}
     self.current_signal = nil
   end
   if self.twin.current_signal then
-    self.twin.current_signal.destroy{raise_destroy=false}
+    self.twin.current_signal.destroy {raise_destroy = false}
     self.twin.current_signal = nil
   end
-  if #self.surface.find_entities_filtered{position=self.position, type="entity-ghost"} > 0 then return end
-  if not self.surface.can_place_entity{name=signal_name, position=self.position, direction=self.direction, force=self.force} then return end
-  self.current_signal = self.surface.create_entity{name=signal_name, position=self.position, direction=self.direction, force=self.player.force, player=self.player, raise_built=false, create_build_effect_smoke=false}
+  if #self.surface.find_entities_filtered {position = self.position, type = "entity-ghost"} > 0 then return end
+  if not self.surface.can_place_entity {name = signal_name, position = self.position, direction = self.direction, force = self.force} then return end
+  self.current_signal = self.surface.create_entity {name = signal_name, position = self.position, direction = self.direction, force = self.player.force, player = self.player, raise_built = false, create_build_effect_smoke = false}
   if self.current_signal and #self.current_signal.get_connected_rails() == 0 then
-    self.current_signal.destroy{raise_destroy=false}
+    self.current_signal.destroy {raise_destroy = false}
     self.current_signal = nil
   elseif self.twin.can_be_used then
-    if self.surface.can_place_entity{name=signal_name, position=self.twin.position, direction=self.twin.direction, force=self.force} then
-      self.twin.current_signal = self.surface.create_entity{name=signal_name, position=self.twin.position, direction=self.twin.direction, force=self.player.force, player=self.player, raise_built=false, create_build_effect_smoke=false}
+    if self.surface.can_place_entity {name = signal_name, position = self.twin.position, direction = self.twin.direction, force = self.force} then
+      self.twin.current_signal = self.surface.create_entity {name = signal_name, position = self.twin.position, direction = self.twin.direction, force = self.player.force, player = self.player, raise_built = false, create_build_effect_smoke = false}
       if self.twin.current_signal and #self.twin.current_signal.get_connected_rails() == 0 then
-        self.current_signal.destroy{raise_destroy=false}
-        self.twin.current_signal.destroy{raise_destroy=false}
+        self.current_signal.destroy {raise_destroy = false}
+        self.twin.current_signal.destroy {raise_destroy = false}
         self.current_signal = nil
         self.twin.current_signal = nil
       end
     else
-      self.current_signal.destroy{raise_destroy=false}
+      self.current_signal.destroy {raise_destroy = false}
       self.current_signal = nil
     end
   end
@@ -270,7 +269,7 @@ function Signal:place_signal_everywhere(dir)
         for _, signal in pairs(direction == "front" and current_signal.signals_front or current_signal.signals_back) do
           table.insert(signals_to_check[direction], signal)
         end
-        ::continue::
+        :: continue ::
       end
     end
   end
@@ -442,27 +441,27 @@ function Signal:restore_signal(should_revive)
     has_new_signal = true
     new_type = self.current_signal.type
     new_name = self.current_signal.name or self.current_signal.type
-    self.current_signal.destroy{raise_destroy=false}
+    self.current_signal.destroy {raise_destroy = false}
   end
   if orig then
     local orig_entity
     if orig.is_ghost then
       if has_new_signal then
-        self.current_signal.destroy{raise_destroy=true}
-        self.current_signal = self.surface.create_entity{name="entity-ghost", inner_name=new_name, position=self.position, direction=self.direction, force=player.force, player=player, raise_built=true}
+        self.current_signal.destroy {raise_destroy = true}
+        self.current_signal = self.surface.create_entity {name = "entity-ghost", inner_name = new_name, position = self.position, direction = self.direction, force = player.force, player = player, raise_built = true}
       end
       goto continue
     else
-      orig_entity = self.surface.create_entity{name=orig.name, position=self.position, direction=self.direction, force=player.force, player=orig.last_user, raise_built=false, create_build_effect_smoke=false}
+      orig_entity = self.surface.create_entity {name = orig.name, position = self.position, direction = self.direction, force = player.force, player = orig.last_user, raise_built = false, create_build_effect_smoke = false}
       orig_entity.health = orig.health
       self.current_signal = orig_entity
     end
     if has_new_signal then
       if new_name ~= orig.name then
-        local can_be_upgraded = orig_entity.order_upgrade{force=player.force, target=new_name, player=player}
+        local can_be_upgraded = orig_entity.order_upgrade {force = player.force, target = new_name, player = player}
         if not can_be_upgraded then
           orig_entity.order_deconstruction(player.force, player)
-          self.current_signal = self.surface.create_entity{"entity-ghost", inner_name=new_name, position=self.position, direction=self.direction, force=player.force, player=player, raise_built=true}
+          self.current_signal = self.surface.create_entity {"entity-ghost", inner_name = new_name, position = self.position, direction = self.direction, force = player.force, player = player, raise_built = true}
           goto continue
         end
       end
@@ -470,10 +469,11 @@ function Signal:restore_signal(should_revive)
       orig_entity.order_deconstruction(player.force, player)
     end
   elseif has_new_signal then
-    self.current_signal = self.surface.create_entity{name="entity-ghost", inner_name=new_name, position=self.position, direction=self.direction, force=player.force, player=player, raise_built=true}
+    self.current_signal = self.surface.create_entity {name = "entity-ghost", inner_name = new_name, position = self.position, direction = self.direction, force = player.force, player = player, raise_built = true}
   end
-  ::continue::
-  if should_revive and self.current_signal and distance(self.position, player.position) <= 3*player.reach_distance then
+  :: continue ::
+  if should_revive and self.current_signal and distance(self.position,
+                                                        player.position) <= 3 * player.reach_distance then
     local inventory = player.get_inventory(defines.inventory.character_main) or player.get_inventory(defines.inventory.god_main)
     if not inventory then return end
     if self.current_signal.to_be_deconstructed() then
@@ -493,7 +493,7 @@ function Signal:restore_signal(should_revive)
       for _, stack in pairs(upgrade_target.items_to_place_this) do
         inventory.remove(stack)
       end
-      self.surface.create_entity{name=upgrade_target.name, position=self.position, direction=self.direction, player=player, raise_built=true, force=player.force, fast_replace=true, spill=true, create_build_effect_smoke=true}
+      self.surface.create_entity {name = upgrade_target.name, position = self.position, direction = self.direction, player = player, raise_built = true, force = player.force, fast_replace = true, spill = true, create_build_effect_smoke = true}
     elseif self.current_signal.type == "entity-ghost" then
       local items_to_place = self.current_signal.ghost_prototype.items_to_place_this
       for _, stack in pairs(items_to_place) do
@@ -503,7 +503,7 @@ function Signal:restore_signal(should_revive)
       for _, stack in pairs(items_to_place) do
         inventory.remove(stack)
       end
-      self.current_signal.revive{raise_revive=true}
+      self.current_signal.revive {raise_revive = true}
     end
   end
 end
@@ -519,15 +519,15 @@ end
 
 function Signal:debug_connections()
   if self.invalid then return end
-  rendering.draw_line{color={0, 1, 0}, width=1, from=self.position, to=self.twin.position, surface=self.surface, time_to_live=300}
-  rendering.draw_circle{color={0, 0, 1}, radius=0.1, filled=true, target=self.position, surface=self.surface, time_to_live=300}
+  rendering.draw_line {color = {0, 1, 0}, width = 1, from = self.position, to = self.twin.position, surface = self.surface, time_to_live = 300}
+  rendering.draw_circle {color = {0, 0, 1}, radius = 0.1, filled = true, target = self.position, surface = self.surface, time_to_live = 300}
   for _, signal in pairs(self.signals_front) do
     local halfway = {x = (self.position.x + signal.position.x) / 2, y = (self.position.y + signal.position.y) / 2}
-    rendering.draw_line{color={1, 1, 0}, width=1, from=self.position, to=halfway, surface=self.surface, time_to_live=300}
+    rendering.draw_line {color = {1, 1, 0}, width = 1, from = self.position, to = halfway, surface = self.surface, time_to_live = 300}
   end
   for _, signal in pairs(self.signals_back) do
     local halfway = {x = (self.position.x + signal.position.x) / 2, y = (self.position.y + signal.position.y) / 2}
-    rendering.draw_line{color={0, 1, 1}, width=1, from=self.position, to=halfway, surface=self.surface, time_to_live=300}
+    rendering.draw_line {color = {0, 1, 1}, width = 1, from = self.position, to = halfway, surface = self.surface, time_to_live = 300}
   end
 end
 
@@ -535,27 +535,27 @@ function Signal:debug_direction()
   if self.invalid then return end
   self:debug_current_signal()
   if self.can_be_used == true then
-    rendering.draw_circle{color={0, 1, 0}, radius=0.2, width=2, target=self.position, surface=self.surface, time_to_live=300, draw_on_ground=true}
+    rendering.draw_circle {color = {0, 1, 0}, radius = 0.2, width = 2, target = self.position, surface = self.surface, time_to_live = 300, draw_on_ground = true}
   elseif self.can_be_used == false then
-    rendering.draw_circle{color={1, 0, 0}, radius=0.2, width=2, target=self.position, surface=self.surface, time_to_live=300, draw_on_ground=true}
+    rendering.draw_circle {color = {1, 0, 0}, radius = 0.2, width = 2, target = self.position, surface = self.surface, time_to_live = 300, draw_on_ground = true}
   else
-    rendering.draw_circle{color={1, 1, 0}, radius=0.2, width=2, target=self.position, surface=self.surface, time_to_live=300, draw_on_ground=true}
+    rendering.draw_circle {color = {1, 1, 0}, radius = 0.2, width = 2, target = self.position, surface = self.surface, time_to_live = 300, draw_on_ground = true}
   end
 end
 
 function Signal:debug_current_signal()
   if self.invalid then return end
   if self.current_signal then
-    rendering.draw_circle{color={0, 1, 0}, radius=0.3, width=2, target=self.position, surface=self.surface, time_to_live=300, draw_on_ground=true}
+    rendering.draw_circle {color = {0, 1, 0}, radius = 0.3, width = 2, target = self.position, surface = self.surface, time_to_live = 300, draw_on_ground = true}
   end
 end
 
 function Signal:debug_entrances()
   if self.invalid then return end
   if self.is_exit then
-    rendering.draw_circle{color={1, 0, 0.5}, radius=0.45, target=self.position, time_to_live=300, surface=self.surface}
+    rendering.draw_circle {color = {1, 0, 0.5}, radius = 0.45, target = self.position, time_to_live = 300, surface = self.surface}
   end
   if self.is_entrance then
-    rendering.draw_circle{color={0, 1, 0.5}, radius=0.55, target=self.position, time_to_live=300, surface=self.surface}
+    rendering.draw_circle {color = {0, 1, 0.5}, radius = 0.55, target = self.position, time_to_live = 300, surface = self.surface}
   end
 end

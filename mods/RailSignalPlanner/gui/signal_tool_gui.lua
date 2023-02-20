@@ -294,7 +294,6 @@ end
 
 script.on_event(defines.events.on_gui_click, on_gui_click)
 script.on_event(defines.events.on_gui_closed, close_signal_gui)
-script.on_event(defines.events.on_mod_item_opened, open_signal_gui)
 script.on_event("rsp-close-menu-escape", on_toggle_menu_pressed)
 script.on_event("rsp-close-menu-e", on_toggle_menu_pressed)
 

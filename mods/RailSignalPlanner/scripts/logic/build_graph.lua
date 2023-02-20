@@ -55,7 +55,7 @@ local function add_block(rail, player, distance_so_far)
         table.insert(rails_to_check, overlap)
       end
     end
-    ::continue::
+    :: continue ::
   end
   block_distance = has_branches_or_overlaps and 0 or block_distance
   -- Then we get all in and outbound signals. We check later if blocks have to be added after the outbound signals
@@ -108,7 +108,7 @@ local function add_rail_up_to_signal(signal, player, direction)
         end
       end
     end
-    ::continue::
+    :: continue ::
   end
 end
 
@@ -166,7 +166,7 @@ end
 local function revive_ghost_signals()
   for _, signal in pairs(Signal.all_signals) do
     if signal.original_signal and signal.original_signal.is_ghost then
-      local _, entity, _ = signal.current_signal.silent_revive{raise_revive=false}
+      local _, entity, _ = signal.current_signal.silent_revive {raise_revive = false}
       signal.current_signal = entity
     end
   end

@@ -1,18 +1,18 @@
 local default_settings = {
-  ["selected_rail_planner"] = "rail",
+  ["selected_rail_planner"]           = "rail",
   ["place_signals_with_rail_planner"] = false,
-  ["force_unidirectional"] = false,
-  ["force_build_rails"] = true,
-  ["water-way"] = {
-    ["rail_signal_item"] = "buoy",
+  ["force_unidirectional"]            = false,
+  ["force_build_rails"]               = true,
+  ["water-way"]                       = {
+    ["rail_signal_item"]       = "buoy",
     ["rail_chain_signal_item"] = "chain_buoy",
-    ["train_length"] = 20,
-    ["rail_signal_distance"] = 20
+    ["train_length"]           = 20,
+    ["rail_signal_distance"]   = 20
   },
-  ["rail_signal_item"] = "rail-signal",
-  ["rail_chain_signal_item"] = "rail-chain-signal",
-  ["train_length"] = 20,
-  ["rail_signal_distance"] = 20,
+  ["rail_signal_item"]                = "rail-signal",
+  ["rail_chain_signal_item"]          = "rail-chain-signal",
+  ["train_length"]                    = 20,
+  ["rail_signal_distance"]            = 20,
 }
 
 function set_default_settings(player_index)
@@ -40,13 +40,13 @@ function set_settings(settings, player, additional_key)
       local entity = game.entity_prototypes[value]
       if not entity then
         player.print({"rail-signal-tool.not-an-item", value}, {255, 100, 100})
-        player.play_sound{path="utility/cannot_build"}
+        player.play_sound {path = "utility/cannot_build"}
         if gui then
           gui.rail_signal_table.rail_signal_item.elem_value = get_setting("rail_signal_item", player, additional_key)
         end
       elseif #entity.items_to_place_this == 0 then
         player.print({"rail-signal-tool.cant-place", entity.localised_name}, {255, 100, 100})
-        player.play_sound{path="utility/cannot_build"}
+        player.play_sound {path = "utility/cannot_build"}
         if gui then
           gui.rail_signal_table.rail_signal_item.elem_value = get_setting("rail_signal_item", player, additional_key)
         end
@@ -57,13 +57,13 @@ function set_settings(settings, player, additional_key)
       local entity = game.entity_prototypes[value]
       if not entity then
         player.print({"rail-signal-tool.not-an-item", value}, {255, 100, 100})
-        player.play_sound{path="utility/cannot_build"}
+        player.play_sound {path = "utility/cannot_build"}
         if gui then
           gui.rail_signal_table.rail_chain_signal_item.elem_value = get_setting("rail_chain_signal_item", player, additional_key)
         end
       elseif #entity.items_to_place_this == 0 then
         player.print({"rail-signal-tool.cant-place", entity.localised_name}, {255, 100, 100})
-        player.play_sound{path="utility/cannot_build"}
+        player.play_sound {path = "utility/cannot_build"}
         if gui then
           gui.rail_signal_table.rail_chain_signal_item.elem_value = get_setting("rail_chain_signal_item", player, additional_key)
         end
@@ -91,7 +91,8 @@ function get_setting(setting, player, additional_key)
     settings = settings[additional_key]
   end
   if settings[setting] == nil then
-    if global.signal_settings[player.index][setting] then --legacy
+    if global.signal_settings[player.index][setting] then
+      --legacy
       settings[setting] = global.signal_settings[player.index][setting]
       global.signal_settings[player.index][setting] = nil
     else

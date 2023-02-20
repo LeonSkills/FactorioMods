@@ -14,7 +14,7 @@ local function initialize_settings(player, invert_bidirectional_setting)
     Signal.unidirectional = not Signal.unidirectional
   end
   -- set which rails are used by which planner for the settings
-  local planners = game.get_filtered_item_prototypes{{filter="type", type="rail-planner"}}
+  local planners = game.get_filtered_item_prototypes {{filter = "type", type = "rail-planner"}}
   Rail.planners = {}
   Signal.settings = {train_length = {}, rail_signal_distance = {}, rail_signal_item = {}, rail_chain_signal_item = {}}
   for _, planner in pairs(planners) do
@@ -82,7 +82,8 @@ local function on_built_entity(event)
     if built_rails[event.player_index] == nil then
       built_rails[event.player_index] = {}
     end
-    table.insert(built_rails[event.player_index], {entity=entity, position=entity.position, direction=entity.direction, type=entity.type, surface=entity.surface})
+    table.insert(built_rails[event.player_index],
+                 {entity = entity, position = entity.position, direction = entity.direction, type = entity.type, surface = entity.surface})
   end
 end
 
@@ -99,7 +100,7 @@ local function remove_disconnected_signals(player, rails)
     end
   end
   if not min_x then return end
-  local signals = surface.find_entities_filtered{area={{min_x-4, min_y-4},{max_x+4, max_y+4}}, type={"rail-signal", "rail-chain-signal"}, force=player.force, to_be_deconstructed=false}
+  local signals = surface.find_entities_filtered {area = {{min_x - 4, min_y - 4}, {max_x + 4, max_y + 4}}, type = {"rail-signal", "rail-chain-signal"}, force = player.force, to_be_deconstructed = false}
   for _, signal in pairs(signals) do
     if #signal.get_connected_rails() == 0 then
       signal.order_deconstruction(player.force, player)
@@ -112,7 +113,7 @@ local function check_changed_rails(rails)
   local new_rails = {}
   for _, rail in pairs(rails) do
     if not rail.entity.valid then
-      local new_rail = rail.surface.find_entities_filtered{type=rail.type, position=rail.position, direction=rail.direction}
+      local new_rail = rail.surface.find_entities_filtered {type = rail.type, position = rail.position, direction = rail.direction}
       new_rail = #new_rail == 1 and new_rail[1]
       table.insert(new_rails, new_rail)
     end
@@ -160,7 +161,7 @@ local function on_player_reverse_selected_area(event)
     signal.cancel_deconstruction(player.force, player)
     signal.cancel_upgrade(player.force, player)
     if signal.type == "entity-ghost" then
-      signal.destroy{raise_destroy=true}
+      signal.destroy {raise_destroy = true}
     end
   end
 end
@@ -173,7 +174,7 @@ local function on_player_alt_reverse_selected_area(event)
   for _, signal in pairs(event.entities) do
     signal.cancel_upgrade(player.force, player)
     if signal.type == "entity-ghost" then
-      signal.destroy{raise_destroy=true}
+      signal.destroy {raise_destroy = true}
     else
       signal.order_deconstruction(player.force, player)
     end
