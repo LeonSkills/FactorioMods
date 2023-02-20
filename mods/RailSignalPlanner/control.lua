@@ -91,7 +91,7 @@ local function remove_disconnected_signals(player, rails)
   local min_x, min_y, max_x, max_y
   local surface
   for _, rail in pairs(rails) do
-    if rail.valid then
+    if rail and rail.valid then
       surface = surface or rail.surface
       min_x = min_x and math.min(min_x, rail.position.x) or rail.position.x
       min_y = min_y and math.min(min_y, rail.position.y) or rail.position.y
@@ -100,6 +100,7 @@ local function remove_disconnected_signals(player, rails)
     end
   end
   if not min_x then return end
+  if not surface then return end
   local signals = surface.find_entities_filtered {area = {{min_x - 4, min_y - 4}, {max_x + 4, max_y + 4}}, type = {"rail-signal", "rail-chain-signal"}, force = player.force, to_be_deconstructed = false}
   for _, signal in pairs(signals) do
     if #signal.get_connected_rails() == 0 then

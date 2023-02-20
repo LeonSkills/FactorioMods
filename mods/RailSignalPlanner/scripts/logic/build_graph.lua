@@ -24,7 +24,7 @@ end
 
 local function add_block(rail, player, distance_so_far)
   -- Add all rails that are in this block to the network
-  if not rail.valid then return end
+  if not rail or not rail.valid then return end
   -- Gets all rails in all blocks in initial_rails
   local rails_to_check = {rail}
   -- First, we get all rails in the block of the initial rails
