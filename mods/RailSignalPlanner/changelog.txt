@@ -3,6 +3,7 @@ Version: 1.2.9
 Date: 2023-02-21
   Bugfixes:
     - Fixed crash when any creative mod destroys items `on_marked_for_deconstruction`
+    - Fixed crash when removing the settings button
 ---------------------------------------------------------------------------------------------------
 Version: 1.2.8
 Date: 2023-02-20

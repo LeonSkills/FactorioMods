@@ -417,7 +417,7 @@ function Signal:find_exit()
   while true do
     if current_signal.is_exit then return last_known_signal or current_signal end
     if #current_signal.signals_back > 1 then
-      self.player.print("Long stretch contains a branch, should not happen. Please report to mod author", {1, 0, 0})
+      -- self.player.print("Long stretch contains a branch, should not happen. Please report to mod author", {1, 0, 0})
       return last_known_signal or current_signal
     end
     if current_signal.current_signal then
@@ -446,7 +446,7 @@ function Signal:restore_signal(should_revive)
   end
   if orig then
     if orig.is_ghost then
-      if has_new_signal then
+      if has_new_signal and self.current_signal then
         self.current_signal.destroy {raise_destroy = true}
         self.current_signal = nil
         self.current_signal = self.surface.create_entity {name = "entity-ghost", inner_name = new_name, position = self.position, direction = self.direction, force = player.force, player = player, raise_built = true}
