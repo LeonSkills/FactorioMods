@@ -89,7 +89,7 @@ local function add_rail_up_to_signal(signal, player, direction)
     local id = entity_id(rail)
     if Rail.all_rails[id] then goto continue end
     local rail = Rail:new(rail, player)
-    local signal_obj = Signal.all_signals[create_unique_id(signal.position, signal.direction)]
+    local signal_obj = Signal.all_signals[create_unique_id(signal.position, signal.direction, signal.rail_layer)]
     for dir, _ in pairs(rail.signals) do
       for side, rail_signal in pairs(rail.signals[dir]) do
         if rail_signal ~= signal_obj and rail_signal ~= signal_obj.twin then
@@ -157,7 +157,7 @@ local function add_neighbouring_blocks(player)
         end
       end
       if has_parents then
-        Signal.all_signals[create_unique_id(signal.position, signal.direction)].is_exit = true
+        Signal.all_signals[create_unique_id(signal.position, signal.direction, signal.rail_layer)].is_exit = true
       end
     end
   end

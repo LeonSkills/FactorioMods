@@ -1,4 +1,3 @@
-
 local function debug()
   -- Draw for each signal position if a signal entity has been placed
   for _, signal in pairs(Signal.all_signals) do

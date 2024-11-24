@@ -15,5 +15,5 @@ end
 
 remote.add_interface("RailSignalPlanner", {
   add_supported_rail = add_supported_rail,
-  get_rail_planner = get_rail_planner
+  get_rail_planner   = get_rail_planner
 })

@@ -8,47 +8,65 @@ require("gui/signal_tool_gui")
 require("scripts/objects/rail")
 require("scripts/shortcuts")
 
+local entity_types = {
+  "straight-rail",
+  "curved-rail-a",
+  "curved-rail-b",
+  "half-diagonal-rail",
+  "elevated-straight-rail",
+  "elevated-curved-rail-a",
+  "elevated-curved-rail-b",
+  "elevated-half-diagonal-rail",
+  "rail-ramp"
+}
+
 local function initialize_settings(player, invert_bidirectional_setting)
   Signal.unidirectional = get_setting("force_unidirectional", player)
   if invert_bidirectional_setting then
     Signal.unidirectional = not Signal.unidirectional
   end
   -- set which rails are used by which planner for the settings
-  local planners = game.get_filtered_item_prototypes {{filter = "type", type = "rail-planner"}}
+  local planners = prototypes.get_item_filtered {{filter = "type", type = "rail-planner"}}
   Rail.planners = {}
   Signal.settings = {train_length = {}, rail_signal_distance = {}, rail_signal_item = {}, rail_chain_signal_item = {}}
   for _, planner in pairs(planners) do
-    Rail.planners[planner.straight_rail.name] = planner.name
-    Rail.planners[planner.curved_rail.name] = planner.name
+    if planner.place_result and planner.place_result.type == "rail-ramp" then
+      goto continue
+    end
+    for _, rail_type in pairs(planner.rails) do
+      Rail.planners[rail_type.name] = planner.name
+    end
     Signal.settings.rail_signal_item[planner.name] = get_setting("rail_signal_item", player, planner.name)
     local chain_signal = get_setting("rail_chain_signal_item", player, planner.name)
-    if not game.entity_prototypes[chain_signal] then
+    if not prototypes.entity[chain_signal] then
       chain_signal = "rail-chain-signal"
       set_settings({["rail_chain_signal_item"] = chain_signal}, player)
     end
     Signal.settings.rail_chain_signal_item[planner.name] = chain_signal
     local rail_signal = get_setting("rail_signal_item", player, planner.name)
-    if not game.entity_prototypes[rail_signal] then
+    if not prototypes.entity[rail_signal] then
       rail_signal = "rail-signal"
       set_settings({["rail_signal_item"] = rail_signal}, player)
     end
     Signal.settings.rail_signal_item[planner.name] = rail_signal
     Signal.settings.rail_signal_distance[planner.name] = get_setting("rail_signal_distance", player, planner.name)
     Signal.settings.train_length[planner.name] = get_setting("train_length", player, planner.name)
+    :: continue ::
   end
   Rail.planners["straight-water-way-placed"] = "water-way" -- Cargo ships replace the rail entities..
   Rail.planners["curved-water-way-placed"] = "water-way" -- Cargo ships replace the rail entities..
 end
 
 local function build_signals(rails, player, using_rail_planner, invert_bidirectional_setting)
+  local debug = false
   if #rails == 0 then return end
   initialize_settings(player, invert_bidirectional_setting)
 
   -- create a chain of signals where signals can be placed
-  build_graph(rails, player)
+  build_graph(rails, player, debug)
 
   -- For each rail decide if signals are placed on the left or right or both
-  local succeeded = mark_rail_direction(player, rails[#rails])
+  local succeeded = mark_rail_direction(player, rails[#rails], debug)
   if not succeeded then
     if using_rail_planner and get_setting("force_build_rails", player) == false then
       for _, rail in pairs(rails) do
@@ -63,7 +81,7 @@ local function build_signals(rails, player, using_rail_planner, invert_bidirecti
     return
   end
   -- place signals
-  place_signals()
+  place_signals(debug)
   -- change signals, checking overlaps
   change_signals(player)
   -- restore signals and rails based on their original signal
@@ -76,8 +94,8 @@ end
 local built_rails = {}
 local function on_built_entity(event)
   local player = game.players[event.player_index]
-  local entity = event.created_entity
-  if entity.type == "straight-rail" or entity.type == "curved-rail" then
+  local entity = event.entity
+  if contains(entity_types, entity.type) then
     if not get_setting("place_signals_with_rail_planner", player) then return end
     if built_rails[event.player_index] == nil then
       built_rails[event.player_index] = {}
@@ -144,7 +162,7 @@ local function on_player_selected_area(event, alt_mode)
   if item == "rail-signal-planner" then
     local rails = {}
     for _, entity in pairs(event.entities) do
-      if entity.type == "straight-rail" or entity.type == "curved-rail" then
+      if contains(entity_types, entity.type) then
         table.insert(rails, entity)
       end
     end
@@ -198,13 +216,13 @@ script.on_event(defines.events.on_player_alt_reverse_selected_area, on_player_al
 script.on_event(defines.events.on_player_cursor_stack_changed, function(event)
   local player = game.players[event.player_index]
   local cursor = player.cursor_stack
-  if not global.planner_info then
-    global.planner_info = {}
+  if not storage.planner_info then
+    storage.planner_info = {}
   end
-  if not global.planner_info[event.player_index] then
-    global.planner_info[event.player_index] = {}
+  if not storage.planner_info[event.player_index] then
+    storage.planner_info[event.player_index] = {}
   end
-  local planner_info = global.planner_info[event.player_index]
+  local planner_info = storage.planner_info[event.player_index]
   if cursor.valid_for_read and cursor.name == "rail-signal-planner" then
     if not planner_info.is_holding_planner then
       planner_info.was_showing_blocks = player.game_view_settings.show_rail_block_visualisation

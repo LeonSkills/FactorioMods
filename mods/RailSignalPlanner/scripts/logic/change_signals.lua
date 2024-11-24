@@ -31,7 +31,6 @@ local function change_signal_based_on_entrance(player)
   end
 end
 
-
 local function change_signal_on_long_stretches(player)
   -- on long stretches we don't place any signal if the distance between previous is too small (setting)
   -- or if the rail is bidirectional

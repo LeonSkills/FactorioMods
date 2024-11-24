@@ -3,6 +3,10 @@ function distance(pos1, pos2)
   return math.sqrt(math.pow(pos1.x - pos2.x, 2) + math.pow(pos1.y - pos2.y, 2))
 end
 
+function taxicab_distance(pos1, pos2)
+  return math.abs(pos1.x - pos2.x) + math.abs(pos1.y - pos2.y)
+end
+
 function contains(array, value)
   for i, v in pairs(array) do
     if v == value then
@@ -15,7 +19,7 @@ end
 function add_leading_zeros(num, str_length)
   local res = tostring(num)
   local l = string.len(res)
-  for i = 0,(str_length-l-1) do
+  for i = 0, (str_length - l - 1) do
     res = 0 .. res
   end
   return res
@@ -24,8 +28,8 @@ end
 function format_number(amount, delimiter)
   local formatted = amount
   while true do
-    formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1'..delimiter..'%2')
-    if (k==0) then
+    formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1' .. delimiter .. '%2')
+    if (k == 0) then
       break
     end
   end
@@ -42,7 +46,7 @@ function tprint (tbl, indent)
     formatting = string.rep("  ", indent) .. k .. ": "
     if type(v) == "table" then
       print(formatting)
-      tprint(v, indent+1)
+      tprint(v, indent + 1)
     elseif type(v) == 'boolean' then
       print(formatting .. tostring(v))
     else
@@ -55,15 +59,15 @@ function copy_table(tbl)
   return union(tbl, {})
 end
 
-function union ( a, b )
-    local result = {}
-    for k,v in pairs ( a ) do
-        table.insert( result, v )
-    end
-    for k,v in pairs ( b ) do
-         table.insert( result, v )
-    end
-    return result
+function union (a, b)
+  local result = {}
+  for k, v in pairs(a) do
+    table.insert(result, v)
+  end
+  for k, v in pairs(b) do
+    table.insert(result, v)
+  end
+  return result
 end
 
 function tablesize(tbl)
@@ -72,23 +76,27 @@ function tablesize(tbl)
   return count
 end
 
-function tablefind(tab,el)
-    for index, value in pairs(tab) do
-        if value == el then
-            return index
-        end
+function tablefind(tab, el)
+  for index, value in pairs(tab) do
+    if value == el then
+      return index
     end
+  end
 end
 
 function remove(tbl, element)
   table.remove(tbl, tablefind(tbl, element))
 end
 
-function create_unique_id(position, direction)
-  return position.x..",".. position.y..",".. direction
+function create_unique_id(position, direction, layer)
+  return position.x .. "," .. position.y .. "," .. direction .. "," .. (layer or "0")
 end
 
 function entity_id(entity)
   local type = entity.type == "entity-ghost" and entity.ghost_type or entity.type
-  return type..","..create_unique_id(entity.position, entity.direction)
+  local layer
+  if type == "rail-signal" or type == "rail-chain-signal" then
+    layer = entity.rail_layer
+  end
+  return type .. "," .. create_unique_id(entity.position, entity.direction, layer)
 end

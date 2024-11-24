@@ -81,7 +81,7 @@ script.on_event(defines.events.on_player_created, on_player_created)
 local function on_gui_click(event)
   local player = game.players[event.player_index]
   local rail_planner = event.element.name:match("^(.*)_planner_button$")
-  if rail_planner and game.item_prototypes[rail_planner] and game.item_prototypes[rail_planner].type == "rail-planner" then
+  if rail_planner and prototypes.item[rail_planner] and prototypes.item[rail_planner].type == "rail-planner" then
     set_settings({["selected_rail_planner"] = rail_planner}, player)
     toggle_signal_ui(event.player_index)
     toggle_signal_ui(event.player_index)
@@ -121,7 +121,7 @@ local function add_titlebar(gui, caption, close_button_name)
     type           = "sprite-button",
     name           = close_button_name,
     style          = "frame_action_button",
-    sprite         = "utility/close_white",
+    sprite         = "utility/close",
     hovered_sprite = "utility/close_black",
     clicked_sprite = "utility/close_black",
     tooltip        = {"gui.close-instruction"},
@@ -137,10 +137,10 @@ function toggle_signal_ui(player_index)
     gui.left.rail_signal_gui.destroy()
     return
   end
-  if not global.signal_settings then
-    global.signal_settings = {}
+  if not storage.signal_settings then
+    storage.signal_settings = {}
   end
-  local global_settings = global.signal_settings[player_index]
+  local global_settings = storage.signal_settings[player_index]
   if not global_settings then
     set_default_settings(player_index)
   end
@@ -167,10 +167,10 @@ function toggle_signal_ui(player_index)
                                                                                               player), tooltip = force_build_rails}
 
   local current_opened_rail = get_setting("selected_rail_planner", player)
-  if not game.item_prototypes[current_opened_rail] or not game.item_prototypes[current_opened_rail].type == "rail-planner" then
+  if not prototypes.item[current_opened_rail] or not prototypes.item[current_opened_rail].type == "rail-planner" then
     current_opened_rail = "rail"
   end
-  local planners = game.get_filtered_item_prototypes {{filter = "type", type = "rail-planner"}}
+  local planners = prototypes.get_item_filtered{{filter = "type", type = "rail-planner"}}
   local rail_planners = {}
   local i = 1
   -- Get the vanilla one as first tab
@@ -188,7 +188,8 @@ function toggle_signal_ui(player_index)
   tabbed_pane.style.minimal_width = 220
 
   for _, rail_planner in pairs(rail_planners) do
-    if rail_planner.has_flag("hidden") then goto continue end
+    if rail_planner.place_result and rail_planner.place_result.type == "rail-ramp" then goto continue end
+    if rail_planner.hidden then goto continue end
     i = i + 1
     local tab = tabbed_pane.add {type = "tab", name = rail_planner.name .. "_planner_button", tooltip = rail_planner.localised_name, resize_to_sprite = true}
     tab.style.horizontally_squashable = false
@@ -222,12 +223,12 @@ function toggle_signal_ui(player_index)
     :: continue ::
   end
   local chain_signal = get_setting("rail_chain_signal_item", player, current_opened_rail)
-  if not game.entity_prototypes[chain_signal] then
+  if not prototypes.entity[chain_signal] then
     chain_signal = "rail-chain-signal"
     set_settings({["rail_chain_signal_item"] = chain_signal}, player)
   end
   local rail_signal = get_setting("rail_signal_item", player, current_opened_rail)
-  if not game.entity_prototypes[rail_signal] then
+  if not prototypes.entity[rail_signal] then
     rail_signal = "rail-signal"
     set_settings({["rail_signal_item"] = rail_signal}, player)
   end
