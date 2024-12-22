@@ -1,4 +1,4 @@
-local entity_info = require("__AltAltMode__/scripts/draw_entity_info")
+local entity_info = require("__alt-alt-mode__/scripts/draw_entity_info")
 
 local function change_radius(event, amount)
   local player = game.players[event.player_index]

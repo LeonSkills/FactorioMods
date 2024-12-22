@@ -1,7 +1,7 @@
-local util = require("__AltAltMode__/scripts/util.lua")
-local draw_functions = require("__AltAltMode__/scripts/draw_functions")
-local constants = require("__AltAltMode__/scripts/constants")
-local circuit_network = require("__AltAltMode__/scripts/circuit_network")
+local util = require("__alt-alt-mode__/scripts/util.lua")
+local draw_functions = require("__alt-alt-mode__/scripts/draw_functions")
+local constants = require("__alt-alt-mode__/scripts/constants")
+local circuit_network = require("__alt-alt-mode__/scripts/circuit_network")
 
 local function get_box_parameters(box, num_items)
   local selection_box_center = util.box_center(box)
