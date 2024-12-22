@@ -1,7 +1,7 @@
-local util = require("__AlternativeAltMode__/scripts/util.lua")
-local draw_functions = require("__AlternativeAltMode__/scripts/draw_functions")
-local constants = require("__AlternativeAltMode__/scripts/constants")
-local circuit_network = require("__AlternativeAltMode__/scripts/circuit_network")
+local util = require("__AltAltMode__/scripts/util.lua")
+local draw_functions = require("__AltAltMode__/scripts/draw_functions")
+local constants = require("__AltAltMode__/scripts/constants")
+local circuit_network = require("__AltAltMode__/scripts/circuit_network")
 
 local function get_box_parameters(box, num_items)
   local selection_box_center = util.box_center(box)
@@ -730,6 +730,9 @@ local function show_alt_info_for_entity(player, entity)
 end
 
 local function show_alt_info_for_player(player)
+  if not storage.change_radius_events then
+    storage.change_radius_events = {}
+  end
   if storage.change_radius_events[player.index] then
     local render = rendering.get_object_by_id(storage.change_radius_events[player.index])
     if render and render.valid then

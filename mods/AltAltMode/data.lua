@@ -1,10 +1,10 @@
-require("__AlternativeAltMode__/input.lua")
+require("__AltAltMode__/input.lua")
 
 data:extend{
   {
     type="sprite",
     name="alt-alt-entity-info-white-background",
-    filename = "__AlternativeAltMode__/graphics/entity-info-white-background.png",
+    filename = "__AltAltMode__/graphics/entity-info-white-background.png",
     priority = "extra-high-no-scale",
     width = 53,
     height = 53,

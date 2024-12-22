@@ -1,7 +1,7 @@
-require("__AlternativeAltMode__/scripts/control_logic.lua")
-require("__AlternativeAltMode__/scripts/util.lua")
-local constants = require("__AlternativeAltMode__/scripts/constants")
-local entity_info = require("__AlternativeAltMode__/scripts/draw_entity_info")
+require("__AltAltMode__/scripts/control_logic.lua")
+require("__AltAltMode__/scripts/util.lua")
+local constants = require("__AltAltMode__/scripts/constants")
+local entity_info = require("__AltAltMode__/scripts/draw_entity_info")
 
 local function on_selected_entity_changed(event)
   local player = game.players[event.player_index]

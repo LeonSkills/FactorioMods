@@ -1,5 +1,5 @@
-local util = require("__AlternativeAltMode__/scripts/util.lua")
-local constants = require("__AlternativeAltMode__/scripts/constants")
+local util = require("__AltAltMode__/scripts/util.lua")
+local constants = require("__AltAltMode__/scripts/constants")
 
 local function determine_offset(index, num_columns, num_rows, scale)
   local x = (index - 1) % num_columns
