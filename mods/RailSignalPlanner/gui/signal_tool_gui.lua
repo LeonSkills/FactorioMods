@@ -89,8 +89,14 @@ local function on_gui_click(event)
     refresh_button(player)
     if event.button == defines.mouse_button_type.right and event.element.name == "rsp_button" then
       player.clear_cursor()
-      local inventory = player.get_main_inventory()
-      local item_stack = inventory.find_item_stack("rail-signal-planner")
+      local inventory = player.get_inventory(defines.inventory.character_main) or
+              player.get_inventory(defines.inventory.editor_main) or
+              player.get_inventory(defines.inventory.god_main)
+
+      local item_stack
+      if inventory then
+        item_stack = inventory.find_item_stack("rail-signal-planner")
+      end
       if item_stack then
         item_stack.swap_stack(player.cursor_stack)
       else
