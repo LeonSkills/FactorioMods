@@ -12,6 +12,8 @@ local rail_types = {
   "elevated-curved-rail-b",
   "elevated-half-diagonal-rail",
   "rail-ramp",
+  "legacy-straight-rail",
+  "legacy-curved-rail",
 }
 local signal_types = {
   "rail-signal",

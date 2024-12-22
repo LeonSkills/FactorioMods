@@ -17,7 +17,9 @@ local entity_types = {
   "elevated-curved-rail-a",
   "elevated-curved-rail-b",
   "elevated-half-diagonal-rail",
-  "rail-ramp"
+  "rail-ramp",
+  "legacy-straight-rail",
+  "legacy-curved-rail",
 }
 
 local function initialize_settings(player, invert_bidirectional_setting)

@@ -37,8 +37,16 @@ function rail_length(rail)
       return 2 * math.sqrt(2)
     end
   end
-  if not length then
-    error("Unsupported rail type " .. type .. " (" .. rail.type .. ")")
+  if type == "legacy-straight-rail" then
+    if rail.direction % 2 == 0 then
+      return 2
+    else
+      return 2 * math.sqrt(2)
+    end
   end
+  if type == "legacy-curved-rail" then
+   return  8.55 - math.sqrt(2)
+  end
+  error("Unsupported rail type " .. type .. " (" .. rail.type .. ")")
 
 end
