@@ -1,0 +1,11 @@
+{
+	"name": "AltAltMode",
+	"version": "0.0.1",
+	"factorio_version": "2.0",
+	"title": "Alternative Alt Mode",
+	"author": "LeonSkills",
+	"contact": "discord: L__eon",
+	"homepage": "https://github.com/LeonSkills/FactorioMods",
+	"description": "Replaces the standard Alt-Mode system with more information.",
+	"dependencies": ["base >= 2.0.0"]
+}
