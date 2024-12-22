@@ -1,0 +1,22 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2024-12-22
+  Info:
+    - Initial release
+
+  Major Features:
+    - Completely replaced the "alt-mode" setting
+    - Alt information is now only shown in a radius around the player's cursor (adjustable)
+
+  Features:
+    - Show accumulator charge
+    - Show electric network power uses on electric poles
+    - Show operators on decider and arithmetic combinators
+    - Show amount of items/fluids in containers and fluidboxes
+    - Change background colour of items/recipes based on their quality
+    - Show temperature of heat-pipes
+    - Show contents of roboports, reactors, generators, vehicles, agricultural towers, thrusters and more
+    - Show circuit network signals on radars
+
+  Locale:
+    - Added English locale
