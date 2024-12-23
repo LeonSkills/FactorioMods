@@ -1,11 +1,11 @@
 {
 	"name": "alt-alt-mode",
-	"version": "0.1.0",
+	"version": "0.1.2",
 	"factorio_version": "2.0",
 	"title": "Alternative Alt Mode",
 	"author": "LeonSkills",
 	"contact": "discord: L__eon",
 	"homepage": "https://github.com/LeonSkills/FactorioMods",
-	"description": "Replaces the standard Alt-Mode system with more information.",
+	"description": "Replaces the standard Alt-Mode by providing more information for more objects. This information is shown only for entities around the player cursor, so the graphics of other objects can be enjoyed without always having an information overlay on top of them.",
 	"dependencies": ["base >= 2.0.0"]
 }

@@ -16,5 +16,13 @@ data:extend(
             consuming                = "game-only",
             order                    = "radius-b"
           },
+          {
+            name                     = "alt-alt",
+            type                     = "custom-input",
+            key_sequence             = "CTRL + ALT + mouse-wheel-down",
+            alternative_key_sequence = "ALT + KP_MINUS",
+            consuming                = "game-only",
+            order                    = "radius-b"
+          },
         }
 )

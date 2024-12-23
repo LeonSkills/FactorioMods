@@ -25,6 +25,7 @@ local function get_target(entity, center, offset, use_direction)
 end
 
 local function determine_sprite_position(entity, center, index, num_columns, num_rows, scale, use_orientation)
+  if num_columns <= 0 or num_rows <= 0 then return end
   local x = (index - 1) % num_columns
   local y = math.floor((index - 1) / num_columns)
   if y >= num_rows then return end

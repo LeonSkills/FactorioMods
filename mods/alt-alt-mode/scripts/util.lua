@@ -1,4 +1,7 @@
 local function fill_grid_with_largest_square(width, height, num_items)
+  if width <= 0 or height <= 0 then
+    return 0, 0, 1
+  end
   width = width * 0.9
   height = height * 0.9
   -- Compute number of rows and columns, and cell size

@@ -4,12 +4,12 @@ local constants = require("__alt-alt-mode__/scripts/constants")
 local circuit_network = require("__alt-alt-mode__/scripts/circuit_network")
 
 local function get_box_parameters(box, num_items)
-  local selection_box_center = util.box_center(box)
+  if num_items == 0 then return end
   local width = math.ceil(box.right_bottom.x - box.left_top.x)
   local height = math.ceil(box.right_bottom.y - box.left_top.y)
+  if width <= 0 or height <= 0 then return end
   width = math.min(width, constants.max_size)
   height = math.min(height, constants.max_size)
-  if num_items == 0 then return end
   local items_per_row, items_per_column, scale = util.fill_grid_with_largest_square(width, height, num_items)
   items_per_row = math.min(items_per_row, num_items)
   if scale < constants.min_scale then
@@ -21,7 +21,7 @@ local function get_box_parameters(box, num_items)
   end
   scale = scale * 0.8
 
-  return selection_box_center, items_per_row, items_per_column, scale
+  return items_per_row, items_per_column, scale
 
 end
 
@@ -30,7 +30,9 @@ local function draw_inventory_contents(player, entity, inventory)
   local contents = inventory.get_contents()
   if not contents then return end
   local num_items = #contents
-  local center, items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
+
+  local center = util.box_center(entity.selection_box)
   for index, item in pairs(contents) do
     local text = {right_bottom = util.localise_number(item.count)}
     local target = draw_functions.determine_sprite_position(
@@ -47,7 +49,9 @@ local function draw_fluid_wagon_contents(player, entity)
   -- cargo wagon does not have a fluid box
   local fluid = entity.get_fluid(1)
   if not fluid then return end
-  local center, items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, 1)
+  local  items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, 1)
+
+  local center = util.box_center(entity.selection_box)
   local prototype = prototypes.fluid[fluid.name]
   local sprite = "fluid." .. fluid.name
   local text = {right_bottom = util.localise_number(fluid.amount)}
@@ -64,8 +68,9 @@ end
 local function draw_fluid_contents(player, entity)
   local contents = entity.fluidbox
   if not contents then return end
-  local num_items = #contents
-  local center, items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #contents)
+
+  local center = util.box_center(entity.selection_box)
   for index = 1, #contents do
     local fluid = contents[index]
     if fluid then
@@ -101,7 +106,9 @@ local function get_item_filter_quality(filter)
 end
 
 local function draw_filters(player, entity, filters, blacklist)
-  local center, items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #filters)
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #filters)
+
+  local center = util.box_center(entity.selection_box)
   for index, filter in pairs(filters) do
     local sprite
     local text, quality = get_item_filter_quality(filter)
@@ -183,7 +190,7 @@ end
 
 local function draw_accumulator_info(player, entity)
   local text = {"", util.localise_number(entity.energy), {"si-unit-symbol-joule"}}
-  local fullness = entity.energy / prototypes.entity[entity.name].electric_energy_source_prototype.buffer_capacity
+  local fullness = entity.energy / entity.electric_buffer_size
   local background_tint = {1 - fullness, fullness, 0}
   draw_functions.draw_text_sprite(player, entity, text, entity, 1, nil, true, background_tint)
 end
@@ -324,7 +331,9 @@ local function draw_constant_combinator_info(player, entity)
       end
     end
   end
-  local center, items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
+
+  local center = util.box_center(entity.selection_box)
   for index, item in pairs(contents) do
     local text = {right_bottom = util.localise_number(signals[item.key].amount)}
     local signal_type = item.signal.type
@@ -476,24 +485,6 @@ local function draw_modules(player, entity, y_ratio)
     end
   end
   draw_functions.draw_module_like(player, entity, sprites, 0.5, y_ratio)
-  -- local width = box.right_bottom.x - box.left_top.x
-  -- local scale = 0.5
-  -- local center = util.box_center(module_box)
-  -- local max_items_per_row = math.floor(width / (scale / 0.75))
-  -- local num_rows = math.ceil(#inventory / max_items_per_row)
-  -- local num_columns = #inventory / num_rows
-  -- for index = 1, #inventory do
-  --   local item = inventory[index]
-  --   if item and item.valid and item.count > 0 then
-  --     local target = draw_functions.determine_sprite_position(
-  --             entity, center, index, num_columns, num_rows, scale / 0.8, false
-  --     )
-  --     local sprite = "item." .. item.name
-  --     if target then
-  --       draw_functions.draw_sprite(player, entity, sprite, target, scale, {}, item.quality)
-  --     end
-  --   end
-  -- end
 end
 
 local function draw_crafting_machine_info(player, entity)
@@ -520,7 +511,9 @@ end
 local function draw_radar_info(player, entity)
   local signals = circuit_network.get_circuit_signals(entity)
   if #signals == 0 then return end
-  local center, items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #signals)
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #signals)
+
+  local center = util.box_center(entity.selection_box)
   for i, signal_data in pairs(signals) do
     local signal = signal_data.signal
     local text = {right_bottom = util.localise_number(signal.count)}
@@ -544,7 +537,9 @@ local function draw_mineable_info(player, entity)
   if not entity.minable or not prototype.mineable_properties or not prototype.mineable_properties.products then return end
   local num_items = #prototype.mineable_properties.products
   if num_items == 0 then return end
-  local center, items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
+
+  local center = util.box_center(entity.selection_box)
   for index, product in pairs(prototype.mineable_properties.products) do
     local amount = product.amount
     if not amount then
@@ -586,7 +581,9 @@ local function draw_consuming_turret_info(player, entity, sprites)
   local use_direction = selection_box.left_top.x ~= selection_box.left_top.y
   draw_turret_info(player, entity, use_direction)
   local box = {left_top = selection_box.left_top, right_bottom = {x = selection_box.right_bottom.x, y = 0}}
-  local center, items_per_row, items_per_column, scale = get_box_parameters(box, #sprites)
+  local items_per_row, items_per_column, scale = get_box_parameters(box, #sprites)
+
+  local center = util.box_center(box)
   for index, sprite in pairs(sprites) do
     local text = {right_bottom = util.localise_number(sprite.amount)}
     local target = draw_functions.determine_sprite_position(
