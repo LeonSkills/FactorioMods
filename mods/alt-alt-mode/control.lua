@@ -89,7 +89,7 @@ local function on_init()
 end
 
 local function on_load()
-  script.on_nth_tick(storage.update_interval, on_tick)
+  script.on_nth_tick(settings.global["alt-alt-update-interval"].value, on_tick)
 end
 
 local function on_surface_change(event)
