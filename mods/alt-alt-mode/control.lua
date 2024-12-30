@@ -63,7 +63,7 @@ end
 local function on_configuration_changed(event)
   if event.mod_changes["alt-alt-mode"] then
     local old_version = event.mod_changes["alt-alt-mode"].old_version
-    if util.compare_versions(old_version, "0.1.14") == -1 then
+    if old_version and util.compare_versions(old_version, "0.1.14") == -1 then
       print("Deregistering old on_nth_tick for mod alt-alt-mode")
       script.on_nth_tick(60, nil)
     end

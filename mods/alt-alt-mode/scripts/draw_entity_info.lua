@@ -35,7 +35,7 @@ local function get_proxy_sprites(entity, item_requests)
         if item and item.count > 0 then
           table.insert(sprites, {
             sprite          = "item." .. item.name,
-            quality         = item.quality,
+            quality         = prototypes.quality[item.quality],
             count           = item.count,
             background_type = "proxy"
           })
@@ -71,7 +71,7 @@ local function draw_inventory_contents(player, entity, inventory, item_requests)
     local target = draw_functions.determine_sprite_position(
             entity, center, index + #contents, items_per_row, items_per_column, scale / 0.8, entity.orientation
     )
-    draw_functions.draw_sprite(player, entity, sprite.sprite, target, scale, text, prototypes.quality[sprite.quality],
+    draw_functions.draw_sprite(player, entity, sprite.sprite, target, scale, text, sprite.quality,
                                sprite.background_type)
   end
 end
@@ -549,7 +549,11 @@ local function draw_modules(player, entity, item_requests, y_ratio)
   for index = 1, #inventory do
     local item = inventory[index]
     if item and item.valid and item.count > 0 then
-      table.insert(sprites, {sprite = "item." .. item.name, count = item.count, quality = item.quality})
+      table.insert(sprites, {
+        sprite  = "item." .. item.name,
+        count   = item.count,
+        quality = item.quality,
+      })
     end
   end
   draw_functions.draw_module_like(player, entity, sprites, 0.5, y_ratio)
@@ -706,7 +710,7 @@ local function draw_consuming_turret_info(player, entity, item_requests, sprites
       if use_direction then
         util.rotate_around_point(target.offset, {x = 0, y = 0}, entity.direction / 16)
       end
-      draw_functions.draw_sprite(player, entity, sprite.sprite, target, scale, text, prototypes.quality[sprite.quality],
+      draw_functions.draw_sprite(player, entity, sprite.sprite, target, scale, text, sprite.quality,
                                  sprite.background_type)
     end
   end
@@ -722,7 +726,7 @@ local function draw_ammo_turret_info(player, entity, item_requests)
   for _, item in pairs(contents) do
     local sprite = "item." .. item.name
     local count = item.count
-    local quality = item.quality
+    local quality = prototypes.quality[item.quality]
     table.insert(sprites, {sprite = sprite, count = count, quality = quality})
   end
   draw_consuming_turret_info(player, entity, item_requests, sprites)

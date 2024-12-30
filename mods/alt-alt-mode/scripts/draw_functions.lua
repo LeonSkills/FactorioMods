@@ -178,13 +178,13 @@ local function draw_sub_text(player, entity, text, target, text_scale, x_offset,
   table.insert(storage[player.index], text_sprite)
 end
 
-local function draw_sprite(player, entity, main_sprite, target, scale, text, quality, background_type)
+local function draw_sprite(player, entity, main_sprite, target, scale, text, quality_prototype, background_type)
   if not target then return end
   if not scale then return end
   local tint = {0, 0, 0}
-  if quality and settings.get_player_settings(player)["alt-alt-show-quality-background"].value then
-    if quality.name ~= "normal" and quality.color then
-      tint = quality.color
+  if quality_prototype and settings.get_player_settings(player)["alt-alt-show-quality-background"].value then
+    if quality_prototype.name ~= "normal" and quality_prototype.color then
+      tint = quality_prototype.color
     end
   end
   local show_badge = settings.get_player_settings(player)["alt-alt-show-quality-badge"].value
@@ -214,10 +214,10 @@ local function draw_sprite(player, entity, main_sprite, target, scale, text, qua
     draw_sub_text(player, entity, text.right_top, target, text_scale, scale * 0.5, -scale * 0.33, "right", "middle")
     draw_sub_text(player, entity, text.left_top, target, text_scale, -scale * 0.5, -scale * 0.33, "left", "middle")
   end
-  if quality and quality.draw_sprite_by_default and show_badge then
+  if quality_prototype and quality_prototype.draw_sprite_by_default and show_badge then
     local sprite
-    if quality.name then
-      sprite = "quality." .. quality.name
+    if quality_prototype.name then
+      sprite = "quality." .. quality_prototype.name
     else
       sprite = "virtual-signal.signal-any-quality"
     end

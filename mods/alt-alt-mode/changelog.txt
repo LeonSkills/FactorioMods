@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2024-12-31
+  Bugfixes:
+    - Fixed inconsistencies between QualityID and LuaQualityPrototype types
+    - Fixed crash when adding mod to existing safe
+---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 2024-12-30
   Major Features:
