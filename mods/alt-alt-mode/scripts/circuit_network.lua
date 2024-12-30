@@ -3,7 +3,8 @@
 -- use_green::boolean
 -- use_red::boolean
 
-local function signal_id(signal)  -- SignalID -> str
+local function signal_id(signal)
+  -- SignalID -> str
   return (signal.type or "item") .. "." .. signal.name .. "." .. (signal.quality or "normal")
 end
 
@@ -33,22 +34,28 @@ end
 
 local function get_circuit_signals(entity, filter, combine, sort)
   -- -> list[AltSignal]
-  local red_circuit = entity.get_circuit_network(defines.wire_connector_id.circuit_red) or {}
-  local green_circuit = entity.get_circuit_network(defines.wire_connector_id.circuit_green) or {}
+  local red_circuit = entity.get_circuit_network(defines.wire_connector_id.circuit_red)
+  local green_circuit = entity.get_circuit_network(defines.wire_connector_id.circuit_green)
+  if not red_circuit and not green_circuit then
+    return false
+  end
   local signals = {}
-  for _, signal in pairs(red_circuit.signals or {}) do
-    local signal_type = signal.signal.type
-    -- Sometimes Wube doesn't make sense by defaulting type "nil" to "item"
-    if filter and (signal_type == filter or (signal_type == nil and filter == "item")) then
-      signal.signal.quality = signal.signal.quality or "normal"
-      table.insert(signals, {signal = signal, use_red = true})
+  if red_circuit and red_circuit.signals then
+    for _, signal in pairs(red_circuit.signals) do
+      local signal_type = signal.signal.type or "item"  -- nil defaults to "item"
+      if signal_type == filter then
+        signal.signal.quality = signal.signal.quality or "normal"
+        table.insert(signals, {signal = signal, use_red = true})
+      end
     end
   end
-  for _, signal in pairs(green_circuit.signals or {}) do
-    local signal_type = signal.signal.type
-    if filter and (signal_type == filter or (signal_type == nil and filter == "item")) then
-      signal.signal.quality = signal.signal.quality or "normal"
-      table.insert(signals, {signal = signal, use_green = true})
+  if green_circuit and green_circuit.signals then
+    for _, signal in pairs(green_circuit.signals) do
+      local signal_type = signal.signal.type or "item"
+      if signal_type == filter then
+        signal.signal.quality = signal.signal.quality or "normal"
+        table.insert(signals, {signal = signal, use_green = true})
+      end
     end
   end
   if combine then
@@ -59,7 +66,6 @@ local function get_circuit_signals(entity, filter, combine, sort)
   end
   return signals
 end
-
 
 return {
   get_circuit_signals = get_circuit_signals,

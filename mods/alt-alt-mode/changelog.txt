@@ -1,4 +1,39 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2024-12-30
+  Major Features:
+    - Draw alt information on fish
+
+  Features:
+    - Display radius now always follows the cursor, no need to hover over an entity (performance heavy, adjustable in settings)
+    - Added the option to always show the "display-radius"
+    - Added toggles to show quality background colour and/or quality icon
+    - Draw modules and filters on mining drills
+    - Add item requests (modules/train fuel)
+
+  Changes:
+    - Adjusted sprite offsets on combinators
+    - Made the "display-radius" circle transparent and filled
+    - Only entities belonging to the same force of the player, or neutral entities, are shown
+    - Slightly reduced sprite background sizes
+    - Sprites are now drawn behind alert icons
+    - Thumbnail updated
+
+  Bugfixes:
+    - Fixed crash when checking constant combinators
+    - Fixed inserters/loaders, that are no longer connected to a circuit network, not showing correct filters
+
+---------------------------------------------------------------------------------------------------
+Version: 0.1.3
+Date: 2024-12-25
+  Features:
+    - Show circuit network content on radars
+
+  Bugfixes:
+    - Fixed splitters not drawing the icons on the correct positions
+    - Fixed splitters not showing normal quality filter
+    - Fixed a crash when selecting certain ghost entities (power pole, accumulator, heat pipe, fluid wagons)
+---------------------------------------------------------------------------------------------------
 Version: 0.1.2
 Date: 2024-12-23
   Bugfixes:

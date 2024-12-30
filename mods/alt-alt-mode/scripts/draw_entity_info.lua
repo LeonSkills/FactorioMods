@@ -20,7 +20,6 @@ local function get_box_parameters(box, num_items)
     scale = constants.max_scale
   end
   scale = scale * 0.8
-
   return items_per_row, items_per_column, scale
 
 end
@@ -46,10 +45,11 @@ local function draw_inventory_contents(player, entity, inventory)
 end
 
 local function draw_fluid_wagon_contents(player, entity)
+  if entity.type == "entity-ghost" then return end
   -- cargo wagon does not have a fluid box
   local fluid = entity.get_fluid(1)
   if not fluid then return end
-  local  items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, 1)
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, 1)
 
   local center = util.box_center(entity.selection_box)
   local prototype = prototypes.fluid[fluid.name]
@@ -68,11 +68,18 @@ end
 local function draw_fluid_contents(player, entity)
   local contents = entity.fluidbox
   if not contents then return end
-  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #contents)
-
-  local center = util.box_center(entity.selection_box)
+  local fluids = {}
   for index = 1, #contents do
     local fluid = contents[index]
+    if fluid and fluid.amount > 0 then
+      table.insert(fluids, fluid)
+    end
+  end
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #fluids)
+
+  local center = util.box_center(entity.selection_box)
+  for index = 1, #fluids do
+    local fluid = fluids[index]
     if fluid then
       local prototype = prototypes.fluid[fluid.name]
       local sprite = "fluid." .. fluid.name
@@ -82,7 +89,7 @@ local function draw_fluid_contents(player, entity)
         text.right_top = {"", util.localise_number(fluid.temperature), {"si-unit-degree-celsius"}}
       end
       local target = draw_functions.determine_sprite_position(
-              entity, center, index, items_per_row, items_per_column, scale / 0.8, true
+              entity, center, index, items_per_row, items_per_column, scale / 0.8, false
       )
       if target then
         draw_functions.draw_sprite(player, entity, sprite, target, scale, text, nil, false)
@@ -105,18 +112,23 @@ local function get_item_filter_quality(filter)
   return text, quality
 end
 
-local function draw_filters(player, entity, filters, blacklist)
-  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #filters)
+local function draw_filters(player, entity, filters, blacklist, box)
+  box = box or entity.selection_box
+  local items_per_row, items_per_column, scale = get_box_parameters(box, #filters)
 
-  local center = util.box_center(entity.selection_box)
+  local center = util.box_center(box)
   for index, filter in pairs(filters) do
-    local sprite
-    local text, quality = get_item_filter_quality(filter)
-    if filter.name then
-      sprite = "item." .. filter.name
+    local sprite, text, quality
+    if entity.type == "mining-drill" or entity.type == "entity-ghost" and entity.ghost_type == "mining-drill" then
+      sprite = "entity." .. filter.name
     else
-      sprite = "quality." .. quality.name
-      quality = nil
+      text, quality = get_item_filter_quality(filter)
+      if filter.name then
+        sprite = "item." .. filter.name
+      else
+        sprite = "quality." .. quality.name
+        quality = nil
+      end
     end
     local target = draw_functions.determine_sprite_position(
             entity, center, index, items_per_row, items_per_column, scale / 0.8, false
@@ -131,7 +143,8 @@ local function draw_filters(player, entity, filters, blacklist)
           surface      = entity.surface,
           x_scale      = scale,
           y_scale      = scale,
-          time_to_live = constants.time_to_live
+          time_to_live = settings.global["alt-alt-update-interval"].value + 30,
+          render_layer = "wires-above",
         }
         table.insert(storage[player.index], blacklist_sprite)
       end
@@ -139,11 +152,14 @@ local function draw_filters(player, entity, filters, blacklist)
   end
 end
 
-local function get_and_draw_filters(player, entity, filter_mode)
+local function get_and_draw_filters(player, entity, filter_mode, box)
   local control = entity.get_control_behavior()
   local filters = {}
+  local signals
   if control and control.circuit_set_filters then
-    local signals = circuit_network.get_circuit_signals(entity, "item", true, false)
+    signals = circuit_network.get_circuit_signals(entity, "item", true, false)
+  end
+  if signals then
     local slots_filled = 0
     for _, signal in pairs(signals) do
       if signal.signal.count > 0 then
@@ -163,11 +179,12 @@ local function get_and_draw_filters(player, entity, filter_mode)
     return
   end
   if #filters == 0 then
-    if filter_mode == "blacklist" or filter_mode == "none" then return end
+    local entity_type = entity.type == "entity-ghost" and entity.ghost_type or entity.type
+    if filter_mode == "blacklist" or filter_mode == "none" or entity_type == "mining-drill" then return end
     draw_functions.draw_sprite(player, entity, "alt-alt-filter-blacklist", entity, 0.45)
     return
   end
-  draw_filters(player, entity, filters, filter_mode == "blacklist")
+  draw_filters(player, entity, filters, filter_mode == "blacklist", box)
 end
 
 local function draw_inserter_filters(player, entity)
@@ -189,14 +206,16 @@ local function draw_pipe_contents(player, entity)
 end
 
 local function draw_accumulator_info(player, entity)
+  if entity.type == "entity-ghost" then return end
   local text = {"", util.localise_number(entity.energy), {"si-unit-symbol-joule"}}
   local fullness = entity.energy / entity.electric_buffer_size
   local background_tint = {1 - fullness, fullness, 0}
-  draw_functions.draw_text_sprite(player, entity, text, entity, 1, nil, true, background_tint)
+  draw_functions.draw_text_sprite(player, entity, text, entity, 1, nil, 1, background_tint)
 end
 
 local function draw_electric_pole_info(player, entity)
   -- Cache the text per electric network so it does not have to be computed for each pole
+  if entity.type == "entity-ghost" then return end
   if not storage["electric_network"] then
     storage["electric_network"] = {}
   end
@@ -215,7 +234,7 @@ local function draw_electric_pole_info(player, entity)
     text = {"", util.localise_number(power_used * 60), {"si-unit-symbol-watt"}}
     storage["electric_network"][entity.electric_network_id] = text
   end
-  draw_functions.draw_text_sprite(player, entity, text, entity, 1, nil, true)
+  draw_functions.draw_text_sprite(player, entity, text, entity, 1, nil, 1)
 end
 
 local function draw_agricultural_tower_info(player, entity)
@@ -226,8 +245,8 @@ end
 local function draw_arithmetic_combinator_info(player, entity)
   local control = entity.get_control_behavior()
   local parameters = control.parameters
-  local x_offset = 0.35
-  local y_offset = 0.25
+  local x_offset = 0.30
+  local y_offset = 0.20
   local first_signal_target = {entity = entity, offset = {x = -x_offset, y = -y_offset}}
   local second_signal_target = {entity = entity, offset = {x = x_offset, y = -y_offset}}
   local output_signal_target = {entity = entity, offset = {x = 0, y = y_offset}}
@@ -263,7 +282,7 @@ local function draw_arithmetic_combinator_info(player, entity)
   end
   draw_functions.draw_text_sprite(player, entity, operation, op_target, operator_scale)
   if parameters.output_signal then
-    local tex
+    local text
     -- if parameters.output_signal.name ~= "signal-each" then
     --   local count = control.get_signal_last_tick(parameters.output_signal) or 0
     --   text = {right_bottom = util.localise_number(count)}
@@ -274,8 +293,8 @@ end
 
 local function draw_decider_combinator_info(player, entity)
   local control = entity.get_control_behavior()
-  local x_offset = 0.35
-  local y_offset = 0.25
+  local x_offset = 0.30
+  local y_offset = 0.20
   local first_signal_target = {entity = entity, offset = {x = -x_offset, y = -y_offset}}
   local second_signal_target = {entity = entity, offset = {x = x_offset, y = -y_offset}}
   local output_signal_target = {entity = entity, offset = {x = 0, y = y_offset}}
@@ -288,13 +307,11 @@ local function draw_decider_combinator_info(player, entity)
     end
     if condition.second_signal then
       draw_functions.draw_signal_id_sprite(player, entity, condition.second_signal, second_signal_target, 0.45, nil,
-                                           condition.first_signal_networks.red, condition.first_signal_networks.green)
+                                           condition.second_signal_networks.red, condition.second_signal_networks.green)
     else
       draw_functions.draw_signal_constant(player, entity, condition.constant, second_signal_target)
     end
     draw_functions.draw_text_sprite(player, entity, condition.comparator, op_target)
-    -- local text_sprite = rendering.draw_text {text = condition.comparator, players = {player}, target = op_target, surface = entity.surface, scale = 1, color = {1, 1, 1}, alignment = "center", vertical_alignment = "middle", time_to_live = constants.time_to_live}
-    -- table.insert(storage[player.index], text_sprite)
   end
   local output = control.get_output(1)
   if output and output.signal then
@@ -311,54 +328,11 @@ local function draw_decider_combinator_info(player, entity)
   end
 end
 
-local function draw_constant_combinator_info(player, entity)
-  local control = entity.get_control_behavior()
-  local signals = {}
-  local num_items = 0
-  local contents = {}
-  for _, section in pairs(control.sections) do
-    for _, signal in pairs(section.filters) do
-      if signal and signal.value then
-        local quality_name = signal.value.quality and signal.value.quality or ""
-        local id = signal.value.name .. signal.value.type .. quality_name
-        if signals[id] then
-          signals[id].amount = signals[id].amount + signal.min
-        else
-          num_items = num_items + 1
-          contents[num_items] = {signal = signal.value, key = id}
-          signals[id] = {signal = signal.value, amount = signal.min or 0}
-        end
-      end
-    end
-  end
-  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
-
-  local center = util.box_center(entity.selection_box)
-  for index, item in pairs(contents) do
-    local text = {right_bottom = util.localise_number(signals[item.key].amount)}
-    local signal_type = item.signal.type
-    if signal_type == "virtual" then
-      signal_type = "virtual-signal"
-    end
-    local sprite = signal_type .. "." .. item.signal.name
-    local target = draw_functions.determine_sprite_position(
-            entity, center, index, items_per_row, items_per_column, scale / 0.7, true
-    )
-    if target then
-      local quality
-      if item.signal.quality then
-        quality = prototypes.quality[item.signal.quality]
-      end
-      draw_functions.draw_sprite(player, entity, sprite, target, scale, text, quality)
-    end
-  end
-end
-
 local function draw_selector_combinator_info(player, entity)
   local control = entity.get_control_behavior()
   local parameters = control.parameters
   local x_offset = 0.25
-  local y_offset = 0.25
+  local y_offset = 0.20
   if parameters.operation == "count" then
     local signal = parameters.count_signal
     if signal then
@@ -378,7 +352,7 @@ local function draw_selector_combinator_info(player, entity)
       local left_target = {entity = entity, offset = {x = -x_offset, y = y_offset}}
       target.offset.x = x_offset
       draw_functions.draw_text_sprite(
-              player, entity, parameters.quality_filter.comparator, left_target, 0.75, nil, true, nil, "left"
+              player, entity, parameters.quality_filter.comparator, left_target, 0.75, nil, 1, nil, "left"
       )
     else
       sprite = "virtual-signal.signal-any-quality"
@@ -416,6 +390,49 @@ local function draw_selector_combinator_info(player, entity)
     draw_functions.draw_text_sprite(player, entity, "]", right_target, 1, nil, false, nil, "right")
   end
 end
+local function draw_constant_combinator_info(player, entity)
+  local control = entity.get_control_behavior()
+  local signals = {}
+  local num_items = 0
+  local contents = {}
+  for _, section in pairs(control.sections) do
+    for _, signal in pairs(section.filters) do
+      if signal and signal.value then
+        local quality_name = signal.value.quality and signal.value.quality or ""
+        local id = signal.value.name .. signal.value.type .. quality_name
+        if signals[id] then
+          signals[id].amount = signals[id].amount + signal.min
+        else
+          num_items = num_items + 1
+          contents[num_items] = {signal = signal.value, key = id}
+          signals[id] = {signal = signal.value, amount = signal.min or 0}
+        end
+      end
+    end
+  end
+  if num_items == 0 then return end
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
+  if scale == nil then return end
+  local center = util.box_center(entity.selection_box)
+  for index, item in pairs(contents) do
+    local text = {right_bottom = util.localise_number(signals[item.key].amount)}
+    local signal_type = item.signal.type
+    if signal_type == "virtual" then
+      signal_type = "virtual-signal"
+    end
+    local sprite = signal_type .. "." .. item.signal.name
+    local target = draw_functions.determine_sprite_position(
+            entity, center, index, items_per_row, items_per_column, scale / 0.7, false
+    )
+    if target then
+      local quality
+      if item.signal.quality then
+        quality = prototypes.quality[item.signal.quality]
+      end
+      draw_functions.draw_sprite(player, entity, sprite, target, scale, text, quality)
+    end
+  end
+end
 
 local function _draw_splitter_arrows(player, entity, scale, input, left)
   local arrow_sprite = "alt-alt-indication-arrow"
@@ -429,17 +446,20 @@ local function _draw_splitter_arrows(player, entity, scale, input, left)
     x_offset = -1
   end
   offset = {x = 0.5 * scale * x_offset, y = 0.25 * scale * y_offset}
-  util.rotate_around_point(offset, {x = 0, y = 0}, entity.orientation)
   local target = {entity = entity, offset = offset}
   if not input and entity.splitter_filter then
     target.offset.y = 0
-    local main_sprite
+    util.rotate_around_point(offset, {x = 0, y = 0}, entity.orientation)
+    local main_sprite, text, quality
     if entity.splitter_filter.name then
       main_sprite = "item." .. entity.splitter_filter.name
+      text, quality = get_item_filter_quality(entity.splitter_filter)
+    else
+      main_sprite = "quality." .. entity.splitter_filter.quality
     end
-    local text, quality = get_item_filter_quality(entity.splitter_filter)
     draw_functions.draw_sprite(player, entity, main_sprite, target, scale * 0.45, text, quality)
   else
+    util.rotate_around_point(offset, {x = 0, y = 0}, entity.orientation)
     local output_sprite = rendering.draw_sprite {
       sprite       = arrow_sprite,
       players      = {player},
@@ -448,7 +468,8 @@ local function _draw_splitter_arrows(player, entity, scale, input, left)
       surface      = entity.surface,
       x_scale      = scale * 0.75,
       y_scale      = scale * 0.75,
-      time_to_live = constants.time_to_live
+      time_to_live = settings.global["alt-alt-update-interval"].value + 30,
+      render_layer = "wires-above"
     }
     table.insert(storage[player.index], output_sprite)
   end
@@ -485,6 +506,7 @@ local function draw_modules(player, entity, y_ratio)
     end
   end
   draw_functions.draw_module_like(player, entity, sprites, 0.5, y_ratio)
+  return #sprites > 0
 end
 
 local function draw_crafting_machine_info(player, entity)
@@ -508,11 +530,32 @@ local function draw_rocket_silo_info(player, entity)
   draw_inventory_contents(player, entity, inventory)
 end
 
+local function draw_mining_drill_info(player, entity)
+  local filter_mode = entity.mining_drill_filter_mode
+  local y_ratio = 2 / 5
+  local has_modules = draw_modules(player, entity, y_ratio)
+  local box = entity.selection_box
+  if filter_mode == nil then
+    filter_mode = "none"
+  end
+  if has_modules then
+    box = {
+      left_top     = box.left_top,
+      right_bottom = {
+        x = box.right_bottom.x,
+        y = box.right_bottom.y - math.max(1, (box.right_bottom.y - box.left_top.y) * y_ratio),
+      },
+    }
+  end
+  -- rendering.draw_rectangle{surface=entity.surface, color={1,1,1}, width=1, left_top=box.left_top, right_bottom=box.right_bottom, time_to_live=500}
+  get_and_draw_filters(player, entity, filter_mode, box)
+end
+
 local function draw_radar_info(player, entity)
   local signals = circuit_network.get_circuit_signals(entity)
+
   if #signals == 0 then return end
   local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #signals)
-
   local center = util.box_center(entity.selection_box)
   for i, signal_data in pairs(signals) do
     local signal = signal_data.signal
@@ -525,10 +568,22 @@ local function draw_radar_info(player, entity)
 end
 
 local function draw_temperature(player, entity)
+  if entity.type == "entity-ghost" then return end
   local scale = 0.5
   local target_text = entity
   local text = {"", util.localise_number(entity.temperature), {"si-unit-degree-celsius"}}
-  local text_sprite = rendering.draw_text {text = text, players = {player}, target = target_text, surface = entity.surface, scale = scale, color = {1, 1, 1}, alignment = "center", vertical_alignment = "middle", time_to_live = constants.time_to_live}
+  local text_sprite = rendering.draw_text {
+    text               = text,
+    players            = {player},
+    target             = target_text,
+    surface            = entity.surface,
+    scale              = scale,
+    color              = {1, 1, 1},
+    alignment          = "center",
+    vertical_alignment = "middle",
+    time_to_live       = settings.global["alt-alt-update-interval"].value + 30,
+    render_layer       = "wires-above",
+  }
   table.insert(storage[player.index], text_sprite)
 end
 
@@ -655,6 +710,7 @@ local alt_functions_per_type = {
   ["locomotive"]               = inventory_alt_info(defines.inventory.fuel),
   ["cargo-wagon"]              = inventory_alt_info(defines.inventory.cargo_wagon),
   ["beacon"]                   = draw_modules,
+  ["mining-drill"]             = draw_mining_drill_info,
   ["artillery-wagon"]          = inventory_alt_info(defines.inventory.artillery_wagon_ammo),
   ["spider-vehicle"]           = inventory_alt_info(defines.inventory.spider_trunk),
   ["space-platform-hub"]       = inventory_alt_info(defines.inventory.hub_main),
@@ -688,10 +744,12 @@ local alt_functions_per_type = {
   ["simple-entity"]            = draw_mineable_info,
   ["simple-entity-with-owner"] = draw_mineable_info,
   ["tree"]                     = draw_mineable_info,
+  ["fish"]                     = draw_mineable_info,
   ["artillery-turret"]         = inventory_alt_info(defines.inventory.artillery_turret_ammo),
   ["ammo-turret"]              = draw_ammo_turret_info,
   ["fluid-turret"]             = draw_fluid_turret_info,
   ["electric-turret"]          = draw_turret_info,
+  ["item-request-proxy"]       = draw_request_proxy,
 }
 
 local function show_alt_info_for_entity(player, entity)
@@ -707,6 +765,7 @@ local function show_alt_info_for_entity(player, entity)
   if alt_functions_per_type[type] then
     alt_functions_per_type[type](player, entity)
   end
+
   -- quality
   if entity.quality and entity.quality.draw_sprite_by_default then
     local box = entity.selection_box
@@ -726,39 +785,28 @@ local function show_alt_info_for_entity(player, entity)
   end
 end
 
-local function show_alt_info_for_player(player)
-  if not storage.change_radius_events then
-    storage.change_radius_events = {}
+local function show_alt_info_for_player(player, center_position)
+  local selected_entity = player.selected
+  center_position = center_position or (selected_entity and selected_entity.position)
+  if not center_position then return end
+  if not storage.last_known_position then
+    storage.last_known_position = {}
   end
-  if storage.change_radius_events[player.index] then
-    local render = rendering.get_object_by_id(storage.change_radius_events[player.index])
-    if render and render.valid then
-      render.destroy()
-    end
-    storage.change_radius_events[player.index] = nil
-  end
+  storage.last_known_position[player.index] = center_position
   storage["electric_network"] = nil
-
-  if storage[player.index] then
-    for _, sprite in pairs(storage[player.index]) do
-      if sprite.valid then
-        sprite.destroy()
-      end
-    end
-    storage[player.index] = nil
-  end
+  draw_functions.remove_all_sprites(player)
   if storage.alt_mode_status and storage.alt_mode_status and storage.alt_mode_status[player.index] ~= "alt-alt" then
     return
   end
-  if not player.selected then return end
   storage[player.index] = {}
   local radius = settings.get_player_settings(player)["alt-alt-radius"].value
-  local selected_entity = player.selected
-  if not selected_entity or not selected_entity.valid then return end
-  if radius <= 0 then
+  if settings.get_player_settings(player)["alt-alt-radius-indicator"].value then
+    draw_functions.draw_radius_indicator(player, center_position, radius)
+  end
+  if radius <= 0 and player.selected then
     show_alt_info_for_entity(player, player.selected)
   else
-    for _, entity in pairs(player.selected.surface.find_entities_filtered {position = player.selected.position, radius = radius}) do
+    for _, entity in pairs(player.surface.find_entities_filtered {position = center_position, radius = radius, force = {player.force, "neutral"}}) do
       show_alt_info_for_entity(player, entity)
     end
   end

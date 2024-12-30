@@ -1,3 +1,7 @@
+local function log(...)
+  print(game.tick, "Alternative Alt Mode", ...)
+end
+
 local function fill_grid_with_largest_square(width, height, num_items)
   if width <= 0 or height <= 0 then
     return 0, 0, 1
@@ -48,7 +52,7 @@ local function number_length(num)
   num = num / math.pow(10, prefix_index * 3)
   if num < 100 then
     num = string.sub(num, 1, 4)
-    else
+  else
     num = string.sub(num, 1, 3)
   end
   return length + num:len()
@@ -96,10 +100,47 @@ local function rotate_around_point(point, center, orientation)
   point.y = y_new + center.y
 end
 
+-- Function to compare two semantic version strings
+local function compare_versions(version1, version2)
+  -- Quick check if they are equal
+  if version1 == version2 then
+    return 0
+  end
+  -- Split a version string into its components
+  local function split_version(version)
+    local major, minor, patch = version:match("^(%d+)%.(%d+)%.(%d+)$")
+    return tonumber(major), tonumber(minor), tonumber(patch)
+  end
+
+  -- Extract major, minor, and patch for both versions
+  local major1, minor1, patch1 = split_version(version1)
+  local major2, minor2, patch2 = split_version(version2)
+
+  -- Compare major versions
+  if major1 ~= major2 then
+    return major1 > major2 and 1 or -1
+  end
+
+  -- Compare minor versions
+  if minor1 ~= minor2 then
+    return minor1 > minor2 and 1 or -1
+  end
+
+  -- Compare patch versions
+  if patch1 ~= patch2 then
+    return patch1 > patch2 and 1 or -1
+  end
+
+  -- Versions are equal
+  return 0
+end
+
 return {
-  number_length = number_length,
-  localise_number = localise_number,
-  box_center = box_center,
-  rotate_around_point = rotate_around_point,
+  log                           = log,
+  number_length                 = number_length,
+  localise_number               = localise_number,
+  box_center                    = box_center,
+  rotate_around_point           = rotate_around_point,
   fill_grid_with_largest_square = fill_grid_with_largest_square,
+  compare_versions              = compare_versions,
 }

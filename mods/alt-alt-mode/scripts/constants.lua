@@ -5,7 +5,7 @@
 --
 
 return {
-  time_to_live = 60,
+  update_interval = 60,
   min_scale = 0.45,
   max_scale = 1,
   max_size = 4
