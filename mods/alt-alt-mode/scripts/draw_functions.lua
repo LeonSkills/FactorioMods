@@ -111,12 +111,12 @@ local function draw_background(player, entity, target, scale, tint)
   table.insert(storage[player.index], bg_sprite)
 end
 
-local function draw_request_background(player, entity, scale)
+local function draw_request_background(player, entity, target, scale)
   scale = scale or 1
   local bg_sprite = rendering.draw_sprite {
     sprite       = 'alt-alt-item-request-symbol',
     players      = {player},
-    target       = entity,
+    target       = target,
     surface      = entity.surface,
     x_scale      = scale,
     y_scale      = scale,
@@ -178,7 +178,7 @@ local function draw_sub_text(player, entity, text, target, text_scale, x_offset,
   table.insert(storage[player.index], text_sprite)
 end
 
-local function draw_sprite(player, entity, main_sprite, target, scale, text, quality, do_not_draw_background)
+local function draw_sprite(player, entity, main_sprite, target, scale, text, quality, background_type)
   if not target then return end
   if not scale then return end
   local tint = {0, 0, 0}
@@ -187,8 +187,12 @@ local function draw_sprite(player, entity, main_sprite, target, scale, text, qua
       tint = quality.color
     end
   end
-  if not do_not_draw_background then
+  local show_badge = settings.get_player_settings(player)["alt-alt-show-quality-badge"].value
+  if not background_type then
     draw_background(player, entity, target, scale, tint)
+  elseif background_type == "proxy" then
+    draw_request_background(player, entity, target, scale * 2)
+    show_badge = true
   end
   if main_sprite then
     local sprite_main = rendering.draw_sprite {
@@ -210,7 +214,7 @@ local function draw_sprite(player, entity, main_sprite, target, scale, text, qua
     draw_sub_text(player, entity, text.right_top, target, text_scale, scale * 0.5, -scale * 0.33, "right", "middle")
     draw_sub_text(player, entity, text.left_top, target, text_scale, -scale * 0.5, -scale * 0.33, "left", "middle")
   end
-  if quality and quality.draw_sprite_by_default and settings.get_player_settings(player)["alt-alt-show-quality-badge"].value then
+  if quality and quality.draw_sprite_by_default and show_badge then
     local sprite
     if quality.name then
       sprite = "quality." .. quality.name
@@ -278,11 +282,15 @@ local function draw_module_like(player, entity, sprites, scale, y_ratio, use_dir
   -- y_ratio is the ratio of which the height of the entity where the modules are drawn
   -- For crafting machines and turrets this is 2/5
   -- Beacons get the whole width
+  -- Modules we only draw on the bottom third of the entity
   if not y_ratio then
     y_ratio = 1
   end
-  -- Modules we only draw on the bottom third of the entity
-  local entity_box = prototypes.entity[entity.name].selection_box
+  local name = entity.name
+  if name == "entity-ghost" then
+    name = entity.ghost_name
+  end
+  local entity_box = prototypes.entity[name].selection_box
   local box = {
     left_top     = {
       x = entity_box.left_top.x,
@@ -304,7 +312,11 @@ local function draw_module_like(player, entity, sprites, scale, y_ratio, use_dir
     local sprite = sprites[index]
     local offset = determine_offset(sprite.index or index, num_columns, num_rows, scale)
     local target = get_target(entity, center, offset, use_direction)
-    draw_sprite(player, entity, sprite.sprite, target, scale, {}, sprite.quality)
+    draw_sprite(player, entity, sprite.sprite, target, scale, {}, sprite.quality, sprite.background_type)
+    if sprite.count and sprite.count > 1 then
+      local text = util.localise_number(sprite.count)
+      draw_sub_text(player, entity, text, target, scale, scale * 0.5, scale * 0.33, "right", "middle")
+    end
   end
 end
 

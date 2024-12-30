@@ -43,7 +43,7 @@ local function get_circuit_signals(entity, filter, combine, sort)
   if red_circuit and red_circuit.signals then
     for _, signal in pairs(red_circuit.signals) do
       local signal_type = signal.signal.type or "item"  -- nil defaults to "item"
-      if signal_type == filter then
+      if not filter or signal_type == filter then
         signal.signal.quality = signal.signal.quality or "normal"
         table.insert(signals, {signal = signal, use_red = true})
       end
@@ -52,7 +52,7 @@ local function get_circuit_signals(entity, filter, combine, sort)
   if green_circuit and green_circuit.signals then
     for _, signal in pairs(green_circuit.signals) do
       local signal_type = signal.signal.type or "item"
-      if signal_type == filter then
+      if not filter or signal_type == filter then
         signal.signal.quality = signal.signal.quality or "normal"
         table.insert(signals, {signal = signal, use_green = true})
       end

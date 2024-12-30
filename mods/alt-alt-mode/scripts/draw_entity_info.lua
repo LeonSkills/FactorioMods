@@ -21,15 +21,39 @@ local function get_box_parameters(box, num_items)
   end
   scale = scale * 0.8
   return items_per_row, items_per_column, scale
-
 end
 
-local function draw_inventory_contents(player, entity, inventory)
-  if not inventory or not inventory.valid then return end
-  local contents = inventory.get_contents()
-  if not contents then return end
-  local num_items = #contents
-  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
+local function get_proxy_sprites(entity, item_requests)
+  if item_requests == "do not" then return {} end
+  if entity.type == "entity-ghost" then
+    item_requests = {entity}
+  end
+  local sprites = {}
+  for _, proxy in pairs(item_requests or {}) do
+    if proxy and proxy.valid then
+      for _, item in pairs(proxy.item_requests) do
+        if item and item.count > 0 then
+          table.insert(sprites, {
+            sprite          = "item." .. item.name,
+            quality         = item.quality,
+            count           = item.count,
+            background_type = "proxy"
+          })
+        end
+      end
+    end
+  end
+  return sprites
+end
+
+local function draw_inventory_contents(player, entity, inventory, item_requests)
+  local contents = {}
+  if inventory and inventory.valid then
+    contents = inventory.get_contents()
+  end
+  local proxy_sprites = get_proxy_sprites(entity, item_requests)
+  if #contents + #proxy_sprites == 0 then return end
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #contents + #proxy_sprites)
 
   local center = util.box_center(entity.selection_box)
   for index, item in pairs(contents) do
@@ -41,6 +65,14 @@ local function draw_inventory_contents(player, entity, inventory)
       local sprite = "item." .. item.name
       draw_functions.draw_sprite(player, entity, sprite, target, scale, text, prototypes.quality[item.quality])
     end
+  end
+  for index, sprite in pairs(proxy_sprites) do
+    local text = {right_bottom = util.localise_number(sprite.count)}
+    local target = draw_functions.determine_sprite_position(
+            entity, center, index + #contents, items_per_row, items_per_column, scale / 0.8, entity.orientation
+    )
+    draw_functions.draw_sprite(player, entity, sprite.sprite, target, scale, text, prototypes.quality[sprite.quality],
+                               sprite.background_type)
   end
 end
 
@@ -156,7 +188,7 @@ local function get_and_draw_filters(player, entity, filter_mode, box)
   local control = entity.get_control_behavior()
   local filters = {}
   local signals
-  if control and control.circuit_set_filters then
+  if control and entity.type ~= "mining-drill" and control.circuit_set_filters then
     signals = circuit_network.get_circuit_signals(entity, "item", true, false)
   end
   if signals then
@@ -200,6 +232,22 @@ local function draw_loader_filters(player, entity)
   get_and_draw_filters(player, entity, filter_mode)
 end
 
+local function draw_pump_filters(player, entity)
+  local filter = entity.fluidbox.get_filter(1)
+  if not filter then return end
+  local text = {}
+  text.scale = 0.5
+  if filter.minimum_temperature and filter.minimum_temperature ~= prototypes.fluid[filter.name].default_temperature then
+    text.left_bottom = {"", ">", util.localise_number(filter.minimum_temperature), {"si-unit-degree-celsius"}}
+  end
+  if filter.maximum_temperature and filter.maximum_temperature ~= prototypes.fluid[filter.name].max_temperature then
+    text.left_top = {"", "<", util.localise_number(filter.maximum_temperature), {"si-unit-degree-celsius"}}
+  end
+  local target = {entity = entity, offset = {x = 0, y = 0}}
+  draw_functions.draw_sprite(player, entity, "fluid." .. filter.name, target, 0.75, text)
+
+end
+
 local function draw_pipe_contents(player, entity)
   if (entity.position.x + entity.position.y) % 2 == 0 then return end
   return draw_fluid_contents(player, entity)
@@ -237,9 +285,9 @@ local function draw_electric_pole_info(player, entity)
   draw_functions.draw_text_sprite(player, entity, text, entity, 1, nil, 1)
 end
 
-local function draw_agricultural_tower_info(player, entity)
+local function draw_agricultural_tower_info(player, entity, item_requests)
   local inventory = entity.get_output_inventory()
-  draw_inventory_contents(player, entity, inventory)
+  draw_inventory_contents(player, entity, inventory, item_requests)
 end
 
 local function draw_arithmetic_combinator_info(player, entity)
@@ -488,29 +536,28 @@ local function draw_splitter_info(player, entity)
   end
 end
 
-local function draw_modules(player, entity, y_ratio)
+local function draw_modules(player, entity, item_requests, y_ratio)
   -- y_ratio is the ratio of which the height of the entity where the modules are drawn
   -- For crafting machines this is 2/5
   -- Beacons get the whole width
   if not y_ratio then
     y_ratio = 1
   end
-  local inventory = entity.get_module_inventory()
-  if not inventory then return end
+  local inventory = entity.get_module_inventory() or {}
   -- rendering.draw_rectangle{surface=entity.surface, color={1,1,1}, width=1, left_top=module_box.left_top, right_bottom=module_box.right_bottom}
-  local sprites = {}
+  local sprites = get_proxy_sprites(entity, item_requests)
   for index = 1, #inventory do
     local item = inventory[index]
     if item and item.valid and item.count > 0 then
-      table.insert(sprites, {sprite = "item." .. item.name, quality = item.quality})
+      table.insert(sprites, {sprite = "item." .. item.name, count = item.count, quality = item.quality})
     end
   end
   draw_functions.draw_module_like(player, entity, sprites, 0.5, y_ratio)
   return #sprites > 0
 end
 
-local function draw_crafting_machine_info(player, entity)
-  draw_modules(player, entity, 2 / 5)
+local function draw_crafting_machine_info(player, entity, item_requests)
+  draw_modules(player, entity, item_requests, 2 / 5)
   local recipe, quality = entity.get_recipe()
   if not recipe then return end
   local box = entity.selection_box
@@ -524,16 +571,16 @@ local function draw_crafting_machine_info(player, entity)
   end
 end
 
-local function draw_rocket_silo_info(player, entity)
-  draw_modules(player, entity, 1 / 3)
+local function draw_rocket_silo_info(player, entity, item_requests)
+  draw_modules(player, entity, item_requests, 1 / 3)
   local inventory = entity.get_inventory(defines.inventory.rocket_silo_rocket)
-  draw_inventory_contents(player, entity, inventory)
+  draw_inventory_contents(player, entity, inventory, "do not")
 end
 
-local function draw_mining_drill_info(player, entity)
+local function draw_mining_drill_info(player, entity, item_requests)
   local filter_mode = entity.mining_drill_filter_mode
   local y_ratio = 2 / 5
-  local has_modules = draw_modules(player, entity, y_ratio)
+  local has_modules = draw_modules(player, entity, item_requests, y_ratio)
   local box = entity.selection_box
   if filter_mode == nil then
     filter_mode = "none"
@@ -554,7 +601,7 @@ end
 local function draw_radar_info(player, entity)
   local signals = circuit_network.get_circuit_signals(entity)
 
-  if #signals == 0 then return end
+  if not signals or #signals == 0 then return end
   local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #signals)
   local center = util.box_center(entity.selection_box)
   for i, signal_data in pairs(signals) do
@@ -563,7 +610,8 @@ local function draw_radar_info(player, entity)
     local target = draw_functions.determine_sprite_position(
             entity, center, i, items_per_row, items_per_column, scale / 0.8, false
     )
-    draw_functions.draw_signal_id_sprite(player, entity, signal.signal, target, scale, text, signal.use_red, signal.use_green)
+    draw_functions.draw_signal_id_sprite(player, entity, signal.signal, target, scale, text, signal_data.use_red,
+                                         signal_data.use_green)
   end
 end
 
@@ -588,6 +636,7 @@ local function draw_temperature(player, entity)
 end
 
 local function draw_mineable_info(player, entity)
+  if entity.type == "entity-ghost" then return end
   local prototype = prototypes.entity[entity.name]
   if not entity.minable or not prototype.mineable_properties or not prototype.mineable_properties.products then return end
   local num_items = #prototype.mineable_properties.products
@@ -612,7 +661,7 @@ local function draw_mineable_info(player, entity)
   end
 end
 
-local function draw_turret_info(player, entity, use_direction)
+local function draw_turret_info(player, entity, item_requests, use_direction)
   local targets = {}
   local index = 0
   while true do
@@ -623,24 +672,31 @@ local function draw_turret_info(player, entity, use_direction)
       table.insert(targets, target)
     end
   end
-  if #targets == 0 then return end
   local sprites = {}
+
   for i, turret_target in pairs(targets) do
     table.insert(sprites, {sprite = "entity." .. turret_target.name, index = i})
   end
-  draw_functions.draw_module_like(player, entity, sprites, 0.5, 2 / 5, use_direction)
+  if #sprites > 0 then
+    draw_functions.draw_module_like(player, entity, sprites, 0.5, 2 / 5, use_direction)
+  end
 end
 
-local function draw_consuming_turret_info(player, entity, sprites)
-  local selection_box = prototypes.entity[entity.name].selection_box
+local function draw_consuming_turret_info(player, entity, item_requests, sprites)
+  local name = entity.name
+  if name == "entity-ghost" then
+    name = entity.ghost_name
+  end
+  local selection_box = prototypes.entity[name].selection_box
   local use_direction = selection_box.left_top.x ~= selection_box.left_top.y
-  draw_turret_info(player, entity, use_direction)
+  draw_turret_info(player, entity, item_requests, use_direction)
   local box = {left_top = selection_box.left_top, right_bottom = {x = selection_box.right_bottom.x, y = 0}}
   local items_per_row, items_per_column, scale = get_box_parameters(box, #sprites)
+  if not scale then return end
 
   local center = util.box_center(box)
   for index, sprite in pairs(sprites) do
-    local text = {right_bottom = util.localise_number(sprite.amount)}
+    local text = {right_bottom = util.localise_number(sprite.count)}
     local target = draw_functions.determine_sprite_position(
             entity, center, index, items_per_row, items_per_column, scale / 0.8, false
     )
@@ -650,41 +706,43 @@ local function draw_consuming_turret_info(player, entity, sprites)
       if use_direction then
         util.rotate_around_point(target.offset, {x = 0, y = 0}, entity.direction / 16)
       end
-      draw_functions.draw_sprite(player, entity, sprite.sprite, target, scale, text, sprite.quality)
+      draw_functions.draw_sprite(player, entity, sprite.sprite, target, scale, text, prototypes.quality[sprite.quality],
+                                 sprite.background_type)
     end
   end
 end
 
-local function draw_ammo_turret_info(player, entity)
+local function draw_ammo_turret_info(player, entity, item_requests)
   local inventory = entity.get_inventory(defines.inventory.turret_ammo)
-  if not inventory or not inventory.valid then return end
-  local contents = inventory.get_contents()
-  if not contents then return end
-  local sprites = {}
+  local contents = {}
+  if inventory and inventory.valid then
+    contents = inventory.get_contents()
+  end
+  local sprites = get_proxy_sprites(entity, item_requests)
   for _, item in pairs(contents) do
     local sprite = "item." .. item.name
-    local amount = item.count
-    local quality = prototypes.quality[item.quality]
-    table.insert(sprites, {sprite = sprite, amount = amount, quality = quality})
+    local count = item.count
+    local quality = item.quality
+    table.insert(sprites, {sprite = sprite, count = count, quality = quality})
   end
-  draw_consuming_turret_info(player, entity, sprites)
+  draw_consuming_turret_info(player, entity, item_requests, sprites)
 end
 
-local function draw_fluid_turret_info(player, entity)
+local function draw_fluid_turret_info(player, entity, item_requests)
   local contents = entity.get_fluid_contents()
   if not contents then return end
   local sprites = {}
-  for fluid, amount in pairs(contents) do
+  for fluid, count in pairs(contents) do
     local sprite = "fluid." .. fluid
-    table.insert(sprites, {sprite = sprite, amount = amount})
+    table.insert(sprites, {sprite = sprite, count = count})
   end
-  draw_consuming_turret_info(player, entity, sprites)
+  draw_consuming_turret_info(player, entity, item_requests, sprites)
 end
 
 local function inventory_alt_info(inventory_define)
-  local function draw(player, entity)
+  local function draw(player, entity, item_requests)
     local inventory = entity.get_inventory(inventory_define)
-    draw_inventory_contents(player, entity, inventory)
+    draw_inventory_contents(player, entity, inventory, item_requests)
   end
   return draw
 end
@@ -730,7 +788,7 @@ local alt_functions_per_type = {
   ["fusion-generator"]         = draw_fluid_contents,
   ["thruster"]                 = draw_fluid_contents,
   ["storage-tank"]             = draw_fluid_contents,
-  ["pump"]                     = draw_fluid_contents,
+  ["pump"]                     = draw_pump_filters,
   ["offshore-pump"]            = draw_fluid_contents,
   ["infinity-pipe"]            = draw_pipe_contents,
   ["pipe"]                     = draw_pipe_contents,
@@ -749,10 +807,15 @@ local alt_functions_per_type = {
   ["ammo-turret"]              = draw_ammo_turret_info,
   ["fluid-turret"]             = draw_fluid_turret_info,
   ["electric-turret"]          = draw_turret_info,
-  ["item-request-proxy"]       = draw_request_proxy,
 }
 
-local function show_alt_info_for_entity(player, entity)
+local supported_types = {}
+for k, _ in pairs(alt_functions_per_type) do
+  table.insert(supported_types, k)
+end
+table.insert(supported_types, "entity-ghost")
+
+local function show_alt_info_for_entity(player, entity, item_requests)
   if not entity or not entity.valid then
     return
   end
@@ -763,7 +826,7 @@ local function show_alt_info_for_entity(player, entity)
     type = entity.type
   end
   if alt_functions_per_type[type] then
-    alt_functions_per_type[type](player, entity)
+    alt_functions_per_type[type](player, entity, item_requests)
   end
 
   -- quality
@@ -804,10 +867,18 @@ local function show_alt_info_for_player(player, center_position)
     draw_functions.draw_radius_indicator(player, center_position, radius)
   end
   if radius <= 0 and player.selected then
-    show_alt_info_for_entity(player, player.selected)
+    show_alt_info_for_entity(player, player.selected, {})
   else
-    for _, entity in pairs(player.surface.find_entities_filtered {position = center_position, radius = radius, force = {player.force, "neutral"}}) do
-      show_alt_info_for_entity(player, entity)
+    local proxies = {}
+    for _, proxy in pairs(player.surface.find_entities_filtered {type = "item-request-proxy", position = center_position, radius = radius, force = player.force}) do
+      local target_id = proxy.proxy_target.unit_number
+      if not proxies[target_id] then
+        proxies[target_id] = {}
+      end
+      table.insert(proxies[target_id], proxy)
+    end
+    for _, entity in pairs(player.surface.find_entities_filtered {type = supported_types, position = center_position, radius = radius, force = {player.force, "neutral"}}) do
+      show_alt_info_for_entity(player, entity, proxies[entity.unit_number])
     end
   end
 end
