@@ -238,10 +238,10 @@ local function draw_pump_filters(player, entity)
   local text = {}
   text.scale = 0.5
   if filter.minimum_temperature and filter.minimum_temperature ~= prototypes.fluid[filter.name].default_temperature then
-    text.left_bottom = {"", ">", util.localise_number(filter.minimum_temperature), {"si-unit-degree-celsius"}}
+    text.left_bottom = {"", "≥", util.localise_number(filter.minimum_temperature), {"si-unit-degree-celsius"}}
   end
   if filter.maximum_temperature and filter.maximum_temperature ~= prototypes.fluid[filter.name].max_temperature then
-    text.left_top = {"", "<", util.localise_number(filter.maximum_temperature), {"si-unit-degree-celsius"}}
+    text.left_top = {"", "≤", util.localise_number(filter.maximum_temperature), {"si-unit-degree-celsius"}}
   end
   local target = {entity = entity, offset = {x = 0, y = 0}}
   draw_functions.draw_sprite(player, entity, "fluid." .. filter.name, target, 0.75, text)
@@ -254,6 +254,7 @@ local function draw_pipe_contents(player, entity)
 end
 
 local function draw_accumulator_info(player, entity)
+  if not settings.get_player_settings(player)["alt-alt-toggle-accus"].value then return end
   if entity.type == "entity-ghost" then return end
   local text = {"", util.localise_number(entity.energy), {"si-unit-symbol-joule"}}
   local fullness = entity.energy / entity.electric_buffer_size
@@ -262,6 +263,7 @@ local function draw_accumulator_info(player, entity)
 end
 
 local function draw_electric_pole_info(player, entity)
+  if not settings.get_player_settings(player)["alt-alt-toggle-poles"].value then return end
   -- Cache the text per electric network so it does not have to be computed for each pole
   if entity.type == "entity-ghost" then return end
   if not storage["electric_network"] then
@@ -620,6 +622,7 @@ local function draw_radar_info(player, entity)
 end
 
 local function draw_temperature(player, entity)
+  if not settings.get_player_settings(player)["alt-alt-toggle-heatpipes"].value then return end
   if entity.type == "entity-ghost" then return end
   local scale = 0.5
   local target_text = entity
@@ -743,6 +746,13 @@ local function draw_fluid_turret_info(player, entity, item_requests)
   draw_consuming_turret_info(player, entity, item_requests, sprites)
 end
 
+local function draw_robot_cargo(player, entity, item_requests)
+  if settings.get_player_settings(player)["alt-alt-toggle-robots"].value then
+    local inventory = entity.get_inventory(defines.inventory.robot_cargo)
+    draw_inventory_contents(player, entity, inventory, item_requests)
+  end
+end
+
 local function inventory_alt_info(inventory_define)
   local function draw(player, entity, item_requests)
     local inventory = entity.get_inventory(inventory_define)
@@ -782,8 +792,8 @@ local alt_functions_per_type = {
   ["infinity-container"]       = inventory_alt_info(defines.inventory.chest),
   ["logistic-container"]       = inventory_alt_info(defines.inventory.chest),
   ["reactor"]                  = inventory_alt_info(defines.inventory.fuel),
-  ["construction-robot"]       = inventory_alt_info(defines.inventory.robot_cargo),
-  ["logistic-robot"]           = inventory_alt_info(defines.inventory.robot_cargo),
+  ["construction-robot"]       = draw_robot_cargo,
+  ["logistic-robot"]           = draw_robot_cargo,
   ["fluid-wagon"]              = draw_fluid_wagon_contents,
   ["boiler"]                   = draw_fluid_contents,
   ["generator"]                = draw_fluid_contents,

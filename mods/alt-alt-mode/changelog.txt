@@ -1,6 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.1
 Date: 2024-12-31
+  Changes:
+    - Added settings to toggle robots, poles, accumulators and heatpipes
+
   Bugfixes:
     - Fixed inconsistencies between QualityID and LuaQualityPrototype types
     - Fixed crash when adding mod to existing safe
