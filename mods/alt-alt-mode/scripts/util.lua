@@ -135,8 +135,18 @@ local function compare_versions(version1, version2)
   return 0
 end
 
+local function contains(table, value)
+  for _, v in pairs(table) do
+    if v == value then
+      return true
+    end
+  end
+  return false
+end
+
 return {
   log                           = log,
+  contains                      = contains,
   number_length                 = number_length,
   localise_number               = localise_number,
   box_center                    = box_center,

@@ -54,32 +54,13 @@ data:extend(
 data:extend(
         {
           {
-            type          = "bool-setting",
-            name          = "alt-alt-toggle-robots",
+            type          = "string-setting",
+            name          = "alt-alt-blacklist",
             setting_type  = "runtime-per-user",
-            default_value = false,
-            order         = "alt-alt-x-a[robots]"
-          },
-          {
-            type          = "bool-setting",
-            name          = "alt-alt-toggle-poles",
-            setting_type  = "runtime-per-user",
-            default_value = true,
-            order         = "alt-alt-x-b[poles]"
-          },
-          {
-            type          = "bool-setting",
-            name          = "alt-alt-toggle-accus",
-            setting_type  = "runtime-per-user",
-            default_value = true,
-            order         = "alt-alt-x-c[accus]"
-          },
-          {
-            type          = "bool-setting",
-            name          = "alt-alt-toggle-heatpipes",
-            setting_type  = "runtime-per-user",
-            default_value = true,
-            order         = "alt-alt-x-d[heatpipes]"
+            default_value = "construction-robot,logistic-robot,tree,fish,simple-entity",
+            order         = "alt-alt-x-a[blacklist]",
+            allow_blank   = true,
+            auto_trim     = true,
           },
         }
 )

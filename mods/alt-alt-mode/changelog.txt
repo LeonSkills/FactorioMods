@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.3
+Date: 2024-12-31
+  Changes:
+    - Added a setting to filter out any entity type.
+
+  Bugfixes:
+    - Fix crash when item-request-proxies had no target
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.2
 Date: 2024-12-31
   Changes:

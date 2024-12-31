@@ -1,15 +1,17 @@
 require("__alt-alt-mode__/scripts/control_logic.lua")
+require("__alt-alt-mode__/scripts/control_settings.lua")
 local util = require("__alt-alt-mode__/scripts/util.lua")
-local entity_info = require("__alt-alt-mode__/scripts/draw_entity_info")
+local player_logic = require("__alt-alt-mode__/scripts/player_logic")
 local mouse = require("__alt-alt-mode__/scripts/mouse_position")
 local draw_functions = require("__alt-alt-mode__/scripts/draw_functions")
+local control_settings = require("__alt-alt-mode__/scripts/control_settings")
 
 local function on_selected_entity_changed(event)
   local player = game.players[event.player_index]
   -- util.log("Entity changed", player.selected and player.selected.name)
   local mouse_position = mouse.find_mouse(player)
   if mouse_position then
-    entity_info.show_alt_info_for_player(player, mouse_position)
+    player_logic.show_alt_info_for_player(player, mouse_position)
   end
 end
 
@@ -18,7 +20,7 @@ local function on_tick(event)
     if not player.selected then
       mouse.start_search(player)
     else
-      entity_info.show_alt_info_for_player(player)
+      player_logic.show_alt_info_for_player(player)
     end
   end
 end
@@ -57,7 +59,7 @@ local function on_toggled_alt_mode(event)
     storage.alt_mode_status[event.player_index] = "off"
     player.game_view_settings.show_entity_info = false
   end
-  entity_info.show_alt_info_for_player(game.players[event.player_index])
+  player_logic.show_alt_info_for_player(game.players[event.player_index])
 end
 
 local function on_configuration_changed(event)
@@ -72,6 +74,7 @@ local function on_configuration_changed(event)
   end
 end
 
+
 local function on_setting_changed(event)
   if event.setting == "alt-alt-update-interval" then
     util.log("Interval changed, deregistering old on_nth_tick ")
@@ -80,6 +83,10 @@ local function on_setting_changed(event)
     end
     storage.update_interval = settings.global["alt-alt-update-interval"].value
     script.on_nth_tick(storage.update_interval, on_tick)
+    return
+  end
+  if event.setting == "alt-alt-blacklist" then
+    control_settings.update_blacklist_setting(game.players[event.player_index])
   end
 end
 
@@ -105,6 +112,6 @@ script.on_configuration_changed(on_configuration_changed)
 script.on_event(defines.events.on_player_rotated_entity, on_selected_entity_changed)
 script.on_event(defines.events.on_selected_entity_changed, on_selected_entity_changed)
 
-script.on_event(defines.events.on_player_toggled_alt_mode, on_toggled_alt_mode)
 script.on_event(defines.events.on_runtime_mod_setting_changed, on_setting_changed)
+script.on_event(defines.events.on_player_toggled_alt_mode, on_toggled_alt_mode)
 script.on_event(defines.events.on_player_changed_surface, on_surface_change)

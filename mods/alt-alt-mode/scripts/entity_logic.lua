@@ -25,10 +25,10 @@ local function get_box_parameters(box, num_items)
 end
 
 local function get_proxy_sprites(entity, item_requests)
-  if item_requests == "do not" then return {} end
   if entity.type == "entity-ghost" then
     item_requests = {entity}
   end
+  if not item_requests then return {} end
   local sprites = {}
   for _, proxy in pairs(item_requests or {}) do
     if proxy and proxy.valid then
@@ -259,7 +259,6 @@ local function draw_pipe_contents(player, entity)
 end
 
 local function draw_accumulator_info(player, entity)
-  if not settings.get_player_settings(player)["alt-alt-toggle-accus"].value then return end
   if entity.type == "entity-ghost" then return end
   local text = {"", util.localise_number(entity.energy), {"si-unit-symbol-joule"}}
   local fullness = entity.energy / entity.electric_buffer_size
@@ -268,7 +267,6 @@ local function draw_accumulator_info(player, entity)
 end
 
 local function draw_electric_pole_info(player, entity)
-  if not settings.get_player_settings(player)["alt-alt-toggle-poles"].value then return end
   -- Cache the text per electric network so it does not have to be computed for each pole
   if entity.type == "entity-ghost" then return end
   if not storage["electric_network"] then
@@ -585,7 +583,7 @@ end
 local function draw_rocket_silo_info(player, entity, item_requests)
   draw_modules(player, entity, item_requests, 1 / 3)
   local inventory = entity.get_inventory(defines.inventory.rocket_silo_rocket)
-  draw_inventory_contents(player, entity, inventory, "do not")
+  draw_inventory_contents(player, entity, inventory)
 end
 
 local function draw_mining_drill_info(player, entity, item_requests)
@@ -628,7 +626,6 @@ local function draw_radar_info(player, entity)
 end
 
 local function draw_temperature(player, entity)
-  if not settings.get_player_settings(player)["alt-alt-toggle-heatpipes"].value then return end
   if entity.type == "entity-ghost" then return end
   local scale = 0.5
   local target_text = entity
@@ -753,13 +750,6 @@ local function draw_fluid_turret_info(player, entity, item_requests)
   draw_consuming_turret_info(player, entity, item_requests, sprites)
 end
 
-local function draw_robot_cargo(player, entity, item_requests)
-  if settings.get_player_settings(player)["alt-alt-toggle-robots"].value then
-    local inventory = entity.get_inventory(defines.inventory.robot_cargo)
-    draw_inventory_contents(player, entity, inventory, item_requests)
-  end
-end
-
 local function inventory_alt_info(inventory_define)
   local function draw(player, entity, item_requests)
     local inventory = entity.get_inventory(inventory_define)
@@ -799,8 +789,8 @@ local alt_functions_per_type = {
   ["infinity-container"]       = inventory_alt_info(defines.inventory.chest),
   ["logistic-container"]       = inventory_alt_info(defines.inventory.chest),
   ["reactor"]                  = inventory_alt_info(defines.inventory.fuel),
-  ["construction-robot"]       = draw_robot_cargo,
-  ["logistic-robot"]           = draw_robot_cargo,
+  ["construction-robot"]       = inventory_alt_info(defines.inventory.robot_cargo),
+  ["logistic-robot"]           = inventory_alt_info(defines.inventory.robot_cargo),
   ["fluid-wagon"]              = draw_fluid_wagon_contents,
   ["boiler"]                   = draw_fluid_contents,
   ["generator"]                = draw_fluid_contents,
@@ -869,42 +859,7 @@ local function show_alt_info_for_entity(player, entity, item_requests)
   end
 end
 
-local function show_alt_info_for_player(player, center_position)
-  local selected_entity = player.selected
-  center_position = center_position or (selected_entity and selected_entity.position)
-  if not center_position then return end
-  if not storage.last_known_position then
-    storage.last_known_position = {}
-  end
-  storage.last_known_position[player.index] = center_position
-  storage["electric_network"] = nil
-  draw_functions.remove_all_sprites(player)
-  if storage.alt_mode_status and storage.alt_mode_status and storage.alt_mode_status[player.index] ~= "alt-alt" then
-    return
-  end
-  storage[player.index] = {}
-  local radius = settings.get_player_settings(player)["alt-alt-radius"].value
-  if settings.get_player_settings(player)["alt-alt-radius-indicator"].value then
-    draw_functions.draw_radius_indicator(player, center_position, radius)
-  end
-  if radius <= 0 and player.selected then
-    show_alt_info_for_entity(player, player.selected, {})
-  else
-    local proxies = {}
-    for _, proxy in pairs(player.surface.find_entities_filtered {type = "item-request-proxy", position = center_position, radius = radius, force = player.force}) do
-      local target_id = proxy.proxy_target.unit_number
-      if not proxies[target_id] then
-        proxies[target_id] = {}
-      end
-      table.insert(proxies[target_id], proxy)
-    end
-    for _, entity in pairs(player.surface.find_entities_filtered {type = supported_types, position = center_position, radius = radius, force = {player.force, "neutral"}}) do
-      show_alt_info_for_entity(player, entity, proxies[entity.unit_number])
-    end
-  end
-end
-
 return {
   show_alt_info_for_entity = show_alt_info_for_entity,
-  show_alt_info_for_player = show_alt_info_for_player
+  supported_types          = supported_types,
 }
