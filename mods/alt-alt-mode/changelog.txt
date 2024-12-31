@@ -1,8 +1,15 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.2.1
+Version: 0.2.2
 Date: 2024-12-31
   Changes:
     - Added settings to toggle robots, poles, accumulators and heatpipes
+
+  Bugfixes:
+    - Added more robust checks to see if sprites can be drawn
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2024-12-31
 
   Bugfixes:
     - Fixed inconsistencies between QualityID and LuaQualityPrototype types

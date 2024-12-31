@@ -11,6 +11,7 @@ local function get_box_parameters(box, num_items)
   width = math.min(width, constants.max_size)
   height = math.min(height, constants.max_size)
   local items_per_row, items_per_column, scale = util.fill_grid_with_largest_square(width, height, num_items)
+  if not scale then return end
   items_per_row = math.min(items_per_row, num_items)
   if scale < constants.min_scale then
     scale = constants.min_scale
@@ -54,6 +55,7 @@ local function draw_inventory_contents(player, entity, inventory, item_requests)
   local proxy_sprites = get_proxy_sprites(entity, item_requests)
   if #contents + #proxy_sprites == 0 then return end
   local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #contents + #proxy_sprites)
+  if not scale then return end
 
   local center = util.box_center(entity.selection_box)
   for index, item in pairs(contents) do
@@ -82,6 +84,7 @@ local function draw_fluid_wagon_contents(player, entity)
   local fluid = entity.get_fluid(1)
   if not fluid then return end
   local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, 1)
+  if not scale then return end
 
   local center = util.box_center(entity.selection_box)
   local prototype = prototypes.fluid[fluid.name]
@@ -108,6 +111,7 @@ local function draw_fluid_contents(player, entity)
     end
   end
   local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #fluids)
+  if not scale then return end
 
   local center = util.box_center(entity.selection_box)
   for index = 1, #fluids do
@@ -147,6 +151,7 @@ end
 local function draw_filters(player, entity, filters, blacklist, box)
   box = box or entity.selection_box
   local items_per_row, items_per_column, scale = get_box_parameters(box, #filters)
+  if not scale then return end
 
   local center = util.box_center(box)
   for index, filter in pairs(filters) do
@@ -462,7 +467,7 @@ local function draw_constant_combinator_info(player, entity)
   end
   if num_items == 0 then return end
   local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
-  if scale == nil then return end
+  if not scale then return end
   local center = util.box_center(entity.selection_box)
   for index, item in pairs(contents) do
     local text = {right_bottom = util.localise_number(signals[item.key].amount)}
@@ -609,6 +614,7 @@ local function draw_radar_info(player, entity)
 
   if not signals or #signals == 0 then return end
   local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #signals)
+  if not scale then return end
   local center = util.box_center(entity.selection_box)
   for i, signal_data in pairs(signals) do
     local signal = signal_data.signal
@@ -649,6 +655,7 @@ local function draw_mineable_info(player, entity)
   local num_items = #prototype.mineable_properties.products
   if num_items == 0 then return end
   local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
+  if not scale then return end
 
   local center = util.box_center(entity.selection_box)
   for index, product in pairs(prototype.mineable_properties.products) do
