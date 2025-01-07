@@ -100,7 +100,7 @@ local function draw_fluid_wagon_contents(player, entity)
   draw_functions.draw_sprite(player, entity, sprite, target, scale, text, nil, false)
 end
 
-local function draw_fluid_contents(player, entity)
+local function draw_fluid_contents(player, entity, no_text)
   local contents = entity.fluidbox
   if not contents then return end
   local fluids = {}
@@ -112,6 +112,7 @@ local function draw_fluid_contents(player, entity)
   end
   local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #fluids)
   if not scale then return end
+  scale = scale * 0.65
 
   local center = util.box_center(entity.selection_box)
   for index = 1, #fluids do
@@ -119,10 +120,12 @@ local function draw_fluid_contents(player, entity)
     if fluid then
       local prototype = prototypes.fluid[fluid.name]
       local sprite = "fluid." .. fluid.name
-      local text = {right_bottom = util.localise_number(fluid.amount)}
-      text.scale = 0.6
-      if fluid.temperature ~= prototype.default_temperature then
-        text.right_top = {"", util.localise_number(fluid.temperature), {"si-unit-degree-celsius"}}
+      local text = {}
+      if not no_text then
+        text = {right_bottom = util.localise_number(fluid.amount)}
+        if fluid.temperature ~= prototype.default_temperature then
+          text.right_top = {"", util.localise_number(fluid.temperature), {"si-unit-degree-celsius"}}
+        end
       end
       local target = draw_functions.determine_sprite_position(
               entity, center, index, items_per_row, items_per_column, scale / 0.8, false
@@ -254,8 +257,35 @@ local function draw_pump_filters(player, entity)
 end
 
 local function draw_pipe_contents(player, entity)
-  if (entity.position.x + entity.position.y) % 2 == 0 then return end
-  return draw_fluid_contents(player, entity)
+  -- Always draw icon when next to an underground pipe
+  local connected = false
+  for index = 1, #entity.fluidbox do
+    for _, connection in pairs(entity.fluidbox.get_pipe_connections(index)) do
+      if connection.connection_type == "normal" and connection.target and connection.target.owner.type == "pipe-to-ground" then
+        connected = true
+      end
+    end
+  end
+  if (entity.position.x + entity.position.y) % 2 == 0 and not connected then return end
+  local no_text = not settings.get_player_settings(player)["alt-alt-show-pipe-amount"].value
+  return draw_fluid_contents(player, entity, no_text)
+end
+
+local function draw_pipe_to_ground_contents(player, entity)
+  -- Only draw icon if not connected to a regular pipe (the icon should be on the pipe in that case)
+  -- or on one of the underground pipes in a pair
+  local connected = false
+  for index = 1, #entity.fluidbox do
+    for _, connection in pairs(entity.fluidbox.get_pipe_connections(index)) do
+      if connection.connection_type == "normal" and connection.target then
+        if connection.target.owner.type == "pipe" then return end
+        connected = true
+      end
+    end
+  end
+  if entity.direction ~= defines.direction.south and entity.direction ~= defines.direction.east and connected then return end
+  local no_text = not settings.get_player_settings(player)["alt-alt-show-pipe-amount"].value
+  return draw_fluid_contents(player, entity, no_text)
 end
 
 local function draw_accumulator_info(player, entity)
@@ -803,7 +833,7 @@ local alt_functions_per_type = {
   ["offshore-pump"]            = draw_fluid_contents,
   ["infinity-pipe"]            = draw_pipe_contents,
   ["pipe"]                     = draw_pipe_contents,
-  ["pipe-to-ground"]           = draw_pipe_contents,
+  ["pipe-to-ground"]           = draw_pipe_to_ground_contents,
   ["inserter"]                 = draw_inserter_filters,
   ["loader"]                   = draw_loader_filters,
   ["loader-1x1"]               = draw_loader_filters,
