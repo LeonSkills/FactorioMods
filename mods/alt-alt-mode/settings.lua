@@ -46,6 +46,13 @@ data:extend(
             default_value = true,
             order         = "alt-alt-b-b[background]",
           },
+          {
+            type          = "bool-setting",
+            name          = "alt-alt-show-pipe-amount",
+            setting_type  = "runtime-per-user",
+            default_value = true,
+            order         = "alt-alt-b-c[pipe]",
+          },
 
         }
 )
