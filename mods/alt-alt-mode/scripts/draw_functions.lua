@@ -188,7 +188,7 @@ local function draw_sprite(player, entity, main_sprite, target, scale, text, qua
     end
   end
   local show_badge = settings.get_player_settings(player)["alt-alt-show-quality-badge"].value
-  if not background_type then
+  if not background_type or background_type == "normal" then
     draw_background(player, entity, target, scale, tint)
   elseif background_type == "proxy" then
     draw_request_background(player, entity, target, scale * 2)

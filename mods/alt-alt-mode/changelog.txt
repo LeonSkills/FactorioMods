@@ -1,8 +1,27 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.4
+Date: 2025-01-12
+  Features:
+    - Draw modules on labs
+    - Draw recipe blocked symbol on recipes that are not unlocked yet
+
+  Changes:
+    - Added "car" to the default blacklisted entity types
+    - Draw quality icons on filtered and enemy entities
+
+  Bugfixes:
+    - Item requests are now shown when selecting entities individually
+    - Stopped the flashing of icons on Fulgora
+    - Stopped spidertron from dancing by removing collision_box on invisible entities
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.3
 Date: 2024-12-31
-  Changes:
+  Features:
     - Added a setting to filter out any entity type.
+
+  Changes:
+    - Removed individual entity settings (robots, poles, accumulators, heat pipes)
 
   Bugfixes:
     - Fix crash when item-request-proxies had no target
@@ -10,8 +29,8 @@ Date: 2024-12-31
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.2
 Date: 2024-12-31
-  Changes:
-    - Added settings to toggle robots, poles, accumulators and heatpipes
+  Features:
+    - Added settings to toggle robots, poles, accumulators and heat pipes
 
   Bugfixes:
     - Added more robust checks to see if sprites can be drawn

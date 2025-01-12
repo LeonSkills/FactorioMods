@@ -67,8 +67,6 @@ for i = 0, 4 do
       hidden                  = true,
       hidden_in_factoriopedia = true,
       selection_box           = {{-width, -width}, {width, width}},
-      collision_box           = {{-0.5, -0.5}, {0.5, 0.5}},
-      collision_mask          = {layers = {}, not_colliding_with_itself = true},
       selection_priority      = 6 - i,
       remove_decoratives      = "false",
     },

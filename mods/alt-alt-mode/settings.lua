@@ -57,7 +57,7 @@ data:extend(
             type          = "string-setting",
             name          = "alt-alt-blacklist",
             setting_type  = "runtime-per-user",
-            default_value = "construction-robot,logistic-robot,tree,fish,simple-entity",
+            default_value = "construction-robot,logistic-robot,tree,fish,simple-entity,car",
             order         = "alt-alt-x-a[blacklist]",
             allow_blank   = true,
             auto_trim     = true,

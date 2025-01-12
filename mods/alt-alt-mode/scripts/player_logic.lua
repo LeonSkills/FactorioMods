@@ -23,8 +23,15 @@ local function show_alt_info_for_player(player, center_position)
   end
   local entity_types = control_settings.get_player_entity_types(player)
   if radius <= 0 and player.selected then
+    entity_logic.show_quality_icon(player, player.selected)
     if not util.contains(entity_types, player.selected.type) then return end
-    entity_logic.show_alt_info_for_entity(player, player.selected, {})
+    local item_requests = {}
+    for _, proxy in pairs(player.surface.find_entities_filtered {type = "item-request-proxy", area=player.selected.selection_box, force = player.force}) do
+      if proxy and proxy.valid and proxy.proxy_target == player.selected then
+        table.insert(item_requests, proxy)
+      end
+    end
+    entity_logic.show_alt_info_for_entity(player, player.selected, item_requests)
   else
     local proxies = {}
     for _, proxy in pairs(player.surface.find_entities_filtered {type = "item-request-proxy", position = center_position, radius = radius, force = player.force}) do
@@ -39,6 +46,11 @@ local function show_alt_info_for_player(player, center_position)
     for _, entity in pairs(player.surface.find_entities_filtered {type = entity_types, position = center_position, radius = radius, force = {player.force, "neutral"}}) do
       if entity and entity.valid then
         entity_logic.show_alt_info_for_entity(player, entity, proxies[entity.unit_number])
+      end
+    end
+    for _, entity in pairs(player.surface.find_entities_filtered {position = center_position, radius = radius, quality={quality="normal", comparator=">"}}) do
+      if entity and entity.valid then
+        entity_logic.show_quality_icon(player, entity)
       end
     end
   end

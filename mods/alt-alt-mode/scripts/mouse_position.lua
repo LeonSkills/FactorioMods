@@ -53,7 +53,7 @@ local function subdivide(player, position, size)
       local entity = player.surface.create_entity {
         name                = "alt-alt-invisible-selectable-" .. size,
         position            = {position.x + x, position.y + y},
-        force               = player.force,
+        force               = "neutral",
         player              = player,
         raise_built         = false,
         render_player_index = player.index

@@ -576,8 +576,27 @@ local function draw_crafting_machine_info(player, entity, item_requests)
   local y_offset = scale / 2
   local target = {entity = entity, offset = {x = 0, y = -y_offset}}
   if target then
-    draw_functions.draw_sprite(player, entity, sprite, target, scale, {}, quality)
+    draw_functions.draw_sprite(player, entity, sprite, target, scale, {}, quality, "normal")
+    if not recipe.enabled then
+      local blacklist_sprite = rendering.draw_sprite {
+        sprite       = 'alt-alt-filter-blacklist',
+        players      = {player},
+        target       = target,
+        surface      = entity.surface,
+        x_scale      = scale,
+        y_scale      = scale,
+        time_to_live = settings.global["alt-alt-update-interval"].value + 30,
+        render_layer = "wires-above",
+      }
+      table.insert(storage[player.index], blacklist_sprite)
+    end
   end
+end
+
+local function draw_lab_info(player, entity, item_requests)
+  draw_modules(player, entity, item_requests, 1 / 3)
+  local inventory = entity.get_inventory(defines.inventory.lab_input)
+  draw_inventory_contents(player, entity, inventory)
 end
 
 local function draw_rocket_silo_info(player, entity, item_requests)
@@ -773,7 +792,7 @@ local alt_functions_per_type = {
   ["asteroid-collector"]       = inventory_alt_info(defines.inventory.chest),
   ["character-corpse"]         = inventory_alt_info(defines.inventory.character_corpse),
   ["roboport"]                 = inventory_alt_info(defines.inventory.roboport_robot),
-  ["lab"]                      = inventory_alt_info(defines.inventory.lab_input),
+  ["lab"]                      = draw_lab_info,
   ["rocket-silo"]              = draw_rocket_silo_info,
   ["car"]                      = inventory_alt_info(defines.inventory.car_trunk),
   ["locomotive"]               = inventory_alt_info(defines.inventory.fuel),
@@ -826,20 +845,7 @@ for k, _ in pairs(alt_functions_per_type) do
 end
 table.insert(supported_types, "entity-ghost")
 
-local function show_alt_info_for_entity(player, entity, item_requests)
-  if not entity or not entity.valid then
-    return
-  end
-  local type
-  if entity.type == "entity-ghost" then
-    type = entity.ghost_type
-  else
-    type = entity.type
-  end
-  if alt_functions_per_type[type] then
-    alt_functions_per_type[type](player, entity, item_requests)
-  end
-
+local function show_quality_icon(player, entity)
   -- quality
   if entity.quality and entity.quality.draw_sprite_by_default then
     local box = entity.selection_box
@@ -859,7 +865,23 @@ local function show_alt_info_for_entity(player, entity, item_requests)
   end
 end
 
+local function show_alt_info_for_entity(player, entity, item_requests)
+  if not entity or not entity.valid then
+    return
+  end
+  local type
+  if entity.type == "entity-ghost" then
+    type = entity.ghost_type
+  else
+    type = entity.type
+  end
+  if alt_functions_per_type[type] then
+    alt_functions_per_type[type](player, entity, item_requests)
+  end
+end
+
 return {
   show_alt_info_for_entity = show_alt_info_for_entity,
+  show_quality_icon        = show_quality_icon,
   supported_types          = supported_types,
 }
