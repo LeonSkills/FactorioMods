@@ -7,6 +7,6 @@
 return {
   update_interval = 60,
   min_scale = 0.45,
-  max_scale = 3,
+  max_scale = 1.5,
   max_size = 4
 }

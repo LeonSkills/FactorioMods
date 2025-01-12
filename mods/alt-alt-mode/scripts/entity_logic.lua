@@ -3,7 +3,8 @@ local draw_functions = require("__alt-alt-mode__/scripts/draw_functions")
 local constants = require("__alt-alt-mode__/scripts/constants")
 local circuit_network = require("__alt-alt-mode__/scripts/circuit_network")
 
-local function get_box_parameters(box, num_items)
+local function get_box_parameters(box, num_items, max_scale)
+  max_scale = max_scale or constants.max_scale
   if num_items == 0 then return end
   local width = math.ceil(box.right_bottom.x - box.left_top.x)
   local height = math.ceil(box.right_bottom.y - box.left_top.y)
@@ -17,8 +18,8 @@ local function get_box_parameters(box, num_items)
     scale = constants.min_scale
     items_per_row = math.floor(width / scale)
     items_per_column = math.floor(height / scale)
-  elseif scale > constants.max_scale then
-    scale = constants.max_scale
+  elseif scale > max_scale then
+    scale = max_scale
   end
   scale = scale * 0.8
   return items_per_row, items_per_column, scale
@@ -110,7 +111,7 @@ local function draw_fluid_contents(player, entity, no_text)
       table.insert(fluids, fluid)
     end
   end
-  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #fluids)
+  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #fluids, 3)
   if not scale then return end
   scale = scale * 0.65
 
