@@ -2,6 +2,43 @@ local util = require("__alt-alt-mode__/scripts/util.lua")
 local draw_functions = require("__alt-alt-mode__/scripts/draw_functions")
 local constants = require("__alt-alt-mode__/scripts/constants")
 local circuit_network = require("__alt-alt-mode__/scripts/circuit_network")
+local icon_draw_specification = require("__alt-alt-mode__/scripts/icon_draw_specification")
+
+local function get_draw_specification(entity)
+  -- see https://forums.factorio.com/viewtopic.php?f=28&t=125562&p=658621
+  local scale = 1
+  local shift = {0, 0}
+  local render_layer = "entity-info-icon"
+  local spec = icon_draw_specification[entity.name]
+  if not spec then
+    local dimension = math.min(
+            entity.selection_box.right_bottom.x - entity.selection_box.left_top.x,
+            entity.selection_box.right_bottom.y - entity.selection_box.left_top.y
+    )
+    if dimension <= 1.5 then
+      scale = dimension / 2
+    elseif dimension <= 2.5 then
+      spec = icon_draw_specification["furnace"]
+    elseif dimension <= 3.5 then
+      spec = icon_draw_specification["assembling-machine"]
+    elseif dimension <= 4.5 then
+      spec = icon_draw_specification["electromagnetic-plant"]
+    elseif dimension <= 5.5 then
+      spec = icon_draw_specification["cryogenic-plant"]
+    else
+      scale = dimension / 3
+    end
+  end
+  if spec then
+    scale = spec.scale or scale
+    shift = spec.shift or shift
+    render_layer = spec.render_layer or render_layer
+  end
+  if render_layer == "entity-info-icon-below" then
+    render_layer = "entity-info-icon"
+  end
+  return scale, shift, render_layer
+end
 
 local function get_box_parameters(box, num_items, max_scale)
   max_scale = max_scale or constants.max_scale
@@ -258,16 +295,18 @@ local function draw_pump_filters(player, entity)
 end
 
 local function draw_pipe_contents(player, entity)
-  -- Always draw icon when next to an underground pipe
-  local connected = false
-  for index = 1, #entity.fluidbox do
-    for _, connection in pairs(entity.fluidbox.get_pipe_connections(index)) do
-      if connection.connection_type == "normal" and connection.target and connection.target.owner.type == "pipe-to-ground" then
-        connected = true
+  if (entity.position.x + entity.position.y) % 2 == 0 then
+    -- Always draw icon when next to an underground pipe
+    for index = 1, #entity.fluidbox do
+      for _, connection in pairs(entity.fluidbox.get_pipe_connections(index)) do
+        if connection.connection_type == "normal" and connection.target and connection.target.owner.type == "pipe-to-ground" then
+          goto continue
+        end
       end
     end
+    return
   end
-  if (entity.position.x + entity.position.y) % 2 == 0 and not connected then return end
+  :: continue ::
   local no_text = not settings.get_player_settings(player)["alt-alt-show-pipe-amount"].value
   return draw_fluid_contents(player, entity, no_text)
 end
@@ -275,16 +314,16 @@ end
 local function draw_pipe_to_ground_contents(player, entity)
   -- Only draw icon if not connected to a regular pipe (the icon should be on the pipe in that case)
   -- or on one of the underground pipes in a pair
-  local connected = false
-  for index = 1, #entity.fluidbox do
-    for _, connection in pairs(entity.fluidbox.get_pipe_connections(index)) do
-      if connection.connection_type == "normal" and connection.target then
-        if connection.target.owner.type == "pipe" then return end
-        connected = true
+  if entity.direction == defines.direction.north or entity.direction == defines.direction.west then
+    for index = 1, #entity.fluidbox do
+      for _, connection in pairs(entity.fluidbox.get_pipe_connections(index)) do
+        if connection.connection_type == "normal" and connection.target then
+          if connection.target.owner.type == "pipe" or connection.target.owner.type == "infinity-pipe" then return end
+        end
       end
     end
   end
-  if entity.direction ~= defines.direction.south and entity.direction ~= defines.direction.east and connected then return end
+  :: continue ::
   local no_text = not settings.get_player_settings(player)["alt-alt-show-pipe-amount"].value
   return draw_fluid_contents(player, entity, no_text)
 end
@@ -600,12 +639,10 @@ local function draw_crafting_machine_info(player, entity, item_requests)
   draw_modules(player, entity, item_requests, 2 / 5)
   local recipe, quality = entity.get_recipe()
   if not recipe then return end
-  local box = entity.selection_box
   local sprite = "recipe." .. recipe.name
-  local dimension_diff = math.max((box.right_bottom.y - box.left_top.y), (box.right_bottom.x - box.left_top.x))
-  local scale = math.ceil(dimension_diff / 2) / 2
-  local y_offset = scale / 2
-  local target = {entity = entity, offset = {x = 0, y = -y_offset}}
+  local scale, shift, render_layer = get_draw_specification(entity)
+  scale = scale * 0.9
+  local target = {entity = entity, offset = shift}
   if target then
     draw_functions.draw_sprite(player, entity, sprite, target, scale, {}, quality, "normal")
     if not recipe.enabled then
@@ -900,6 +937,9 @@ local function show_alt_info_for_entity(player, entity, item_requests)
   if not entity or not entity.valid then
     return
   end
+  if not entity.prototype.selectable_in_game then return end
+  if entity.selection_box.left_top.x == entity.selection_box.right_bottom.x then return end
+  if entity.selection_box.left_top.y == entity.selection_box.right_bottom.y then return end
   local type
   if entity.type == "entity-ghost" then
     type = entity.ghost_type

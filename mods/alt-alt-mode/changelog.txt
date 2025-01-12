@@ -1,5 +1,10 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.4
+Date: 2025-01-13
+  Changes:
+    - Entities that are not selectable will not show any icons
+---------------------------------------------------------------------------------------------------
+Version: 0.2.4
 Date: 2025-01-12
   Features:
     - Draw modules on labs
@@ -8,6 +13,7 @@ Date: 2025-01-12
   Changes:
     - Added "car" to the default blacklisted entity types
     - Draw quality icons on filtered and enemy entities
+    - Better visualisation on pipes (Thanks to O5MO)
 
   Bugfixes:
     - Item requests are now shown when selecting entities individually

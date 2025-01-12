@@ -1,5 +1,6 @@
 require("__alt-alt-mode__/scripts/control_logic.lua")
 require("__alt-alt-mode__/scripts/control_settings.lua")
+require("__alt-alt-mode__/tests/test_entity.lua")
 local util = require("__alt-alt-mode__/scripts/util.lua")
 local player_logic = require("__alt-alt-mode__/scripts/player_logic")
 local mouse = require("__alt-alt-mode__/scripts/mouse_position")

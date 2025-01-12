@@ -128,20 +128,14 @@ local function draw_request_background(player, entity, target, scale)
 end
 
 local function draw_text_sprite(
-        player, entity, text, target, scale, color, background_scale, background_tint, alignment, vertical_alignment
+        player, entity, text, target, scale, color, background_scale, background_tint, alignment, vertical_alignment,
+        render_layer
 )
-  if not scale then
-    scale = 1
-  end
-  if not color then
-    color = {1, 1, 1}
-  end
-  if not alignment then
-    alignment = "center"
-  end
-  if not vertical_alignment then
-    vertical_alignment = "middle"
-  end
+  scale = scale or 1
+  color = color or {1, 1, 1}
+  alignment = alignment or "center"
+  vertical_alignment = vertical_alignment or "middle"
+  render_layer = render_layer or "entity-info-icon"
   if background_scale then
     draw_background(player, entity, target, background_scale * 0.45, background_tint)
   end
@@ -155,13 +149,15 @@ local function draw_text_sprite(
     alignment          = alignment,
     vertical_alignment = vertical_alignment,
     time_to_live       = settings.global["alt-alt-update-interval"].value + 30,
-    render_layer       = "wires-above",
+    render_layer       = render_layer,
   }
   table.insert(storage[player.index], text_sprite)
 end
 
-local function draw_sub_text(player, entity, text, target, text_scale, x_offset, y_offset, alignment, vertical_alignment)
+local function draw_sub_text(player, entity, text, target, text_scale, x_offset, y_offset, alignment, vertical_alignment,
+                             render_layer)
   if not text then return end
+  render_layer = render_layer or "entity-info-icon"
   local target_text = {entity = entity, offset = {x = target.offset.x + x_offset, y = target.offset.y + y_offset}}
   local text_sprite = rendering.draw_text {
     text               = text,
@@ -173,14 +169,15 @@ local function draw_sub_text(player, entity, text, target, text_scale, x_offset,
     alignment          = alignment or "center",
     vertical_alignment = vertical_alignment or "middle",
     time_to_live       = settings.global["alt-alt-update-interval"].value + 30,
-    render_layer       = "wires-above"
+    render_layer       = render_layer
   }
   table.insert(storage[player.index], text_sprite)
 end
 
-local function draw_sprite(player, entity, main_sprite, target, scale, text, quality_prototype, background_type)
+local function draw_sprite(player, entity, main_sprite, target, scale, text, quality_prototype, background_type, render_layer)
   if not target then return end
   if not scale then return end
+  render_layer = render_layer or "entity-info-icon"
   local tint = {0, 0, 0}
   if quality_prototype and settings.get_player_settings(player)["alt-alt-show-quality-background"].value then
     if quality_prototype.name ~= "normal" and quality_prototype.color then
@@ -203,16 +200,20 @@ local function draw_sprite(player, entity, main_sprite, target, scale, text, qua
       x_scale      = scale,
       y_scale      = scale,
       time_to_live = settings.global["alt-alt-update-interval"].value + 30,
-      render_layer = "wires-above",
+      render_layer = render_layer,
     }
     table.insert(storage[player.index], sprite_main)
   end
   if text then
     local text_scale = text.scale or scale
-    draw_sub_text(player, entity, text.right_bottom, target, text_scale, scale * 0.5, scale * 0.33, "right", "middle")
-    draw_sub_text(player, entity, text.left_bottom, target, text_scale, -scale * 0.5, scale * 0.33, "left", "middle")
-    draw_sub_text(player, entity, text.right_top, target, text_scale, scale * 0.5, -scale * 0.33, "right", "middle")
-    draw_sub_text(player, entity, text.left_top, target, text_scale, -scale * 0.5, -scale * 0.33, "left", "middle")
+    draw_sub_text(player, entity, text.right_bottom, target, text_scale, scale * 0.5, scale * 0.33, "right", "middle",
+                  render_layer)
+    draw_sub_text(player, entity, text.left_bottom, target, text_scale, -scale * 0.5, scale * 0.33, "left", "middle",
+                  render_layer)
+    draw_sub_text(player, entity, text.right_top, target, text_scale, scale * 0.5, -scale * 0.33, "right", "middle",
+                  render_layer)
+    draw_sub_text(player, entity, text.left_top, target, text_scale, -scale * 0.5, -scale * 0.33, "left", "middle",
+                  render_layer)
   end
   if quality_prototype and quality_prototype.draw_sprite_by_default and show_badge then
     local sprite
@@ -230,7 +231,7 @@ local function draw_sprite(player, entity, main_sprite, target, scale, text, qua
       x_scale      = scale / 2,
       y_scale      = scale / 2,
       time_to_live = settings.global["alt-alt-update-interval"].value + 30,
-      render_layer = "wires-above"
+      render_layer = render_layer
     }
     table.insert(storage[player.index], quality_sprite)
   end
