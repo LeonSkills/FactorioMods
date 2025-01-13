@@ -196,7 +196,7 @@ local function get_and_draw_filters(player, entity, filter_mode, box)
   local control = entity.get_control_behavior()
   local filters = {}
   local signals
-  if control and entity.type ~= "mining-drill" and control.circuit_set_filters then
+  if control and control.type ~= defines.control_behavior.type.mining_drill and control.circuit_set_filters then
     signals = circuit_network.get_circuit_signals(entity, "item", true, false)
   end
   if signals then
