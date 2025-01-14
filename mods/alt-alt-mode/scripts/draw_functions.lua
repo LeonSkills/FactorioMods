@@ -93,7 +93,7 @@ local function determine_sprite_position(entity, center, index, num_columns, num
   return target
 end
 
-local function draw_background(player, entity, target, scale, tint)
+local function draw_background(player, entity, target, scale, tint, render_layer)
   if not tint then
     tint = {0, 0, 0}
   end
@@ -102,16 +102,17 @@ local function draw_background(player, entity, target, scale, tint)
     players      = {player},
     target       = target,
     surface      = entity.surface,
-    x_scale      = scale,
-    y_scale      = scale,
+    x_scale      = scale * 0.9,
+    y_scale      = scale * 0.9,
     tint         = tint,
     time_to_live = settings.global["alt-alt-update-interval"].value + 30,
-    render_layer = "fluid-visualization",
+    render_layer = render_layer,
   }
+  bg_sprite.bring_to_front()
   table.insert(storage[player.index], bg_sprite)
 end
 
-local function draw_request_background(player, entity, target, scale)
+local function draw_request_background(player, entity, target, scale, render_layer)
   scale = scale or 1
   local bg_sprite = rendering.draw_sprite {
     sprite       = 'alt-alt-item-request-symbol',
@@ -120,9 +121,8 @@ local function draw_request_background(player, entity, target, scale)
     surface      = entity.surface,
     x_scale      = scale,
     y_scale      = scale,
-    tint         = tint,
     time_to_live = settings.global["alt-alt-update-interval"].value + 30,
-    render_layer = "fluid-visualization",
+    render_layer = render_layer,
   }
   table.insert(storage[player.index], bg_sprite)
 end
@@ -137,7 +137,7 @@ local function draw_text_sprite(
   vertical_alignment = vertical_alignment or "middle"
   render_layer = render_layer or "entity-info-icon"
   if background_scale then
-    draw_background(player, entity, target, background_scale * 0.45, background_tint)
+    draw_background(player, entity, target, background_scale * 0.45, background_tint, render_layer)
   end
   local text_sprite = rendering.draw_text {
     text               = text,
@@ -186,9 +186,9 @@ local function draw_sprite(player, entity, main_sprite, target, scale, text, qua
   end
   local show_badge = settings.get_player_settings(player)["alt-alt-show-quality-badge"].value
   if not background_type or background_type == "normal" then
-    draw_background(player, entity, target, scale, tint)
+    draw_background(player, entity, target, scale, tint, render_layer)
   elseif background_type == "proxy" then
-    draw_request_background(player, entity, target, scale * 2)
+    draw_request_background(player, entity, target, scale * 2, render_layer)
     show_badge = true
   end
   if main_sprite then
@@ -279,47 +279,6 @@ local function draw_signal_constant(player, entity, constant, target)
   draw_text_sprite(player, entity, text, target, scale, nil, 0.8)
 end
 
-local function draw_module_like(player, entity, sprites, scale, y_ratio, use_direction)
-  -- y_ratio is the ratio of which the height of the entity where the modules are drawn
-  -- For crafting machines and turrets this is 2/5
-  -- Beacons get the whole width
-  -- Modules we only draw on the bottom third of the entity
-  if not y_ratio then
-    y_ratio = 1
-  end
-  local name = entity.name
-  if name == "entity-ghost" then
-    name = entity.ghost_name
-  end
-  local entity_box = prototypes.entity[name].selection_box
-  local box = {
-    left_top     = {
-      x = entity_box.left_top.x,
-      y = entity_box.right_bottom.y - math.max(1, (entity_box.right_bottom.y - entity_box.left_top.y) * y_ratio)
-    },
-    right_bottom = entity_box.right_bottom
-  }
-  -- rendering.draw_rectangle{surface=entity.surface, color={1,1,1}, width=1, left_top=box.left_top, right_bottom=box.right_bottom, time_to_live=500}
-  local width = box.right_bottom.x - box.left_top.x
-  local height = box.right_bottom.y - box.left_top.y
-  local center = util.box_center(box)
-  local max_items_per_row = math.floor(width / scale)
-  local max_items_per_column = math.floor(height / scale)
-  local max_items = max_items_per_row * max_items_per_column
-  local num_items = math.min(#sprites, max_items)
-  local num_rows = math.ceil(num_items / max_items_per_row)
-  local num_columns = num_items / num_rows
-  for index = 1, num_items do
-    local sprite = sprites[index]
-    local offset = determine_offset(sprite.index or index, num_columns, num_rows, scale)
-    local target = get_target(entity, center, offset, use_direction)
-    draw_sprite(player, entity, sprite.sprite, target, scale, {}, sprite.quality, sprite.background_type)
-    if sprite.count and sprite.count > 1 then
-      local text = util.localise_number(sprite.count)
-      draw_sub_text(player, entity, text, target, scale, scale * 0.5, scale * 0.33, "right", "middle")
-    end
-  end
-end
 
 return {
   draw_radius_indicator     = draw_radius_indicator,
@@ -330,6 +289,5 @@ return {
   determine_sprite_position = determine_sprite_position,
   draw_signal_id_sprite     = draw_signal_id_sprite,
   draw_signal_constant      = draw_signal_constant,
-  draw_module_like          = draw_module_like,
   draw_request_background   = draw_request_background
 }

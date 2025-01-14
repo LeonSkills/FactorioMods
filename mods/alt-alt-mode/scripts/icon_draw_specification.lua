@@ -1,231 +1,231 @@
 -- This file is required because of https://forums.factorio.com/viewtopic.php?f=28&t=125562&p=658621
 return {
-  ["wooden-chest"]           = {
+  ["wooden-chest"]                = {
     scale = 0.7
   },
-  ["iron-chest"]             = {
+  ["iron-chest"]                  = {
     scale = 0.7
   },
-  ["steel-chest"]            = {
+  ["steel-chest"]                 = {
     scale = 0.7
   },
-  ["red-chest"]              = {
+  ["red-chest"]                   = {
     scale = 0.7
   },
-  ["blue-chest"]             = {
+  ["blue-chest"]                  = {
     scale = 0.7
   },
-  ["stone-furnace"]          = {
+  ["stone-furnace"]               = {
     scale = 0.66000000000000005,
     shift = {
       0,
       -0.1
     }
   },
-  ["electric-furnace"]       = {
+  ["electric-furnace"]            = {
     shift = {
       0,
       -0.1
     }
   },
-  ["steel-furnace"]          = {
+  ["steel-furnace"]               = {
     scale = 0.66000000000000005,
     shift = {
       0,
       -0.1
     }
   },
-  ["recycler"]               = {
+  ["recycler"]                    = {
     shift = {
       0,
       -0.55
     }
   },
-  ["inserter"]               = {
+  ["inserter"]                    = {
     scale = 0.5
   },
-  ["fast-inserter"]          = {
+  ["fast-inserter"]               = {
     scale = 0.5
   },
-  ["long-handed-inserter"]   = {
+  ["long-handed-inserter"]        = {
     scale = 0.5
   },
-  ["burner-inserter"]        = {
+  ["burner-inserter"]             = {
     scale = 0.5
   },
-  ["bulk-inserter"]          = {
+  ["bulk-inserter"]               = {
     scale = 0.5
   },
-  ["stack-inserter"]         = {
+  ["stack-inserter"]              = {
     scale = 0.5
   },
-  ["pipe"]                   = {
+  ["pipe"]                        = {
     scale = 0.5
   },
-  ["pipe-to-ground"]         = {
+  ["pipe-to-ground"]              = {
     scale = 0.5
   },
-  ["assembling-machine-1"]   = {
+  ["assembling-machine-1"]        = {
     shift = {
       0,
       -0.3
     }
   },
-  ["assembling-machine-2"]   = {
+  ["assembling-machine-2"]        = {
     shift = {
       0,
       -0.3
     }
   },
-  ["assembling-machine-3"]   = {
+  ["assembling-machine-3"]        = {
     shift = {
       0,
       -0.3
     }
   },
-  ["oil-refinery"]           = {
+  ["oil-refinery"]                = {
     scale = 2,
     shift = {
       0,
       -0.3
     }
   },
-  ["chemical-plant"]         = {
+  ["chemical-plant"]              = {
     shift = {
       0,
       -0.3
     }
   },
-  ["centrifuge"]             = {
+  ["centrifuge"]                  = {
     shift = {
       0,
       -0.3
     }
   },
-  ["biochamber"]             = {
+  ["biochamber"]                  = {
     shift = {
       0,
       -0.3
     }
   },
-  ["crusher"]                = {
+  ["crusher"]                     = {
     shift = {
       0,
       -0.45
     }
   },
-  ["foundry"]                = {
+  ["foundry"]                     = {
     scale = 2,
     shift = {
       0,
       -0.3
     }
   },
-  ["captive-biter-spawner"]  = {
+  ["captive-biter-spawner"]       = {
     shift = {
       0,
       -0.3
     }
   },
-  ["electromagnetic-plant"]  = {
+  ["electromagnetic-plant"]       = {
     shift = {
       0,
       -0.25
     }
   },
-  ["cryogenic-plant"]        = {
+  ["cryogenic-plant"]             = {
     scale = 2,
     shift = {
       0,
       -0.3
     }
   },
-  ["biolab"]                 = {
+  ["biolab"]                      = {
     shift = {
       0,
       -0.3
     }
   },
-  ["passive-provider-chest"] = {
+  ["passive-provider-chest"]      = {
     scale = 0.7
   },
-  ["active-provider-chest"]  = {
+  ["active-provider-chest"]       = {
     scale = 0.7
   },
-  ["storage-chest"]          = {
+  ["storage-chest"]               = {
     scale = 0.7
   },
-  ["buffer-chest"]           = {
+  ["buffer-chest"]                = {
     scale = 0.7
   },
-  ["requester-chest"]        = {
+  ["requester-chest"]             = {
     scale = 0.7
   },
-  ["rocket-silo"]            = {
+  ["rocket-silo"]                 = {
     shift = {
       0,
       2
     }
   },
-  ["rocket-silo-rocket"]     = {
+  ["rocket-silo-rocket"]          = {
     render_layer = "air-entity-info-icon"
   },
-  ["storage-tank"]           = {
+  ["storage-tank"]                = {
     scale = 1.5,
     shift = {
       0,
       -0.3
     }
   },
-  ["pump"]                   = {
+  ["pump"]                        = {
     scale = 0.5
   },
-  ["infinity-chest"]         = {
+  ["infinity-chest"]              = {
     scale = 0.7
   },
-  ["infinity-pipe"]          = {
+  ["infinity-pipe"]               = {
     scale = 0.5
   },
-  ["linked-chest"]           = {
+  ["linked-chest"]                = {
     scale = 0.7
   },
-  ["cargo-pod"]              = {
+  ["cargo-pod"]                   = {
     render_layer = "air-entity-info-icon",
     scale        = 1
   },
-  ["splitter"]               = {
+  ["splitter"]                    = {
     scale = 0.5
   },
-  ["fast-splitter"]          = {
+  ["fast-splitter"]               = {
     scale = 0.5
   },
-  ["express-splitter"]       = {
+  ["express-splitter"]            = {
     scale = 0.5
   },
-  ["turbo-splitter"]         = {
+  ["turbo-splitter"]              = {
     scale = 0.5
   },
-  ["lane-splitter"]          = {
+  ["lane-splitter"]               = {
     scale = 0.35
   },
-  ["gun-turret"]             = {
+  ["gun-turret"]                  = {
     scale = 0.7
   },
-  ["fluid-wagon"]            = {
+  ["fluid-wagon"]                 = {
     scale = 1.25,
     shift = {
       0,
       -1
     }
   },
-  ["artillery-wagon"]        = {
+  ["artillery-wagon"]             = {
     scale = 0.7,
     shift = {
       0,
       -0.5
     }
   },
-  ["construction-robot"]     = {
+  ["construction-robot"]          = {
     render_layer = "air-entity-info-icon",
     scale        = 0.5,
     shift        = {
@@ -233,7 +233,7 @@ return {
       -0.2
     }
   },
-  ["logistic-robot"]         = {
+  ["logistic-robot"]              = {
     render_layer = "air-entity-info-icon",
     scale        = 0.5,
     shift        = {
@@ -241,23 +241,147 @@ return {
       -0.2
     }
   },
-  ["arithmetic-combinator"]  = {
+  ["arithmetic-combinator"]       = {
     scale = 0.5
   },
-  ["decider-combinator"]     = {
+  ["decider-combinator"]          = {
     scale = 0.5
   },
-  ["constant-combinator"]    = {
+  ["constant-combinator"]         = {
     scale = 0.7
   },
-  ["display-panel"]          = {
+  ["display-panel"]               = {
     scale = 0.5,
     shift = {
       0,
       -0.25
     }
   },
-  ["selector-combinator"]    = {
+  ["selector-combinator"]         = {
     scale = 0.5
   },
+  -- Warehousing mod
+  ["warehouse-basic"]             = {
+    scale          = 3.5,
+    scale_for_many = 4,
+    shift          = {
+      0,
+      -0.9
+    }
+  },
+  ["storehouse-basic"]            = {
+    scale          = 1.75,
+    scale_for_many = 2,
+    shift          = {
+      0,
+      -0.4
+    }
+  },
+  ["storehouse-active-provider"]  = {
+    scale          = 1.75,
+    scale_for_many = 2,
+    shift          = {
+      0,
+      -0.4
+    }
+  },
+  ["storehouse-passive-provider"] = {
+    scale          = 1.75,
+    scale_for_many = 2,
+    shift          = {
+      0,
+      -0.4
+    }
+  },
+  ["storehouse-storage"]          = {
+    scale          = 1.75,
+    scale_for_many = 2,
+    shift          = {
+      0,
+      -0.4
+    }
+  },
+  ["storehouse-buffer"]           = {
+    scale          = 1.75,
+    scale_for_many = 2,
+    shift          = {
+      0,
+      -0.4
+    }
+  },
+  ["storehouse-requester"]        = {
+    scale          = 1.75,
+    scale_for_many = 2,
+    shift          = {
+      0,
+      -0.4
+    }
+  },
+  ["warehouse-active-provider"]   = {
+    scale          = 3.5,
+    scale_for_many = 4,
+    shift          = {
+      0,
+      -0.9
+    }
+  },
+  ["warehouse-passive-provider"]  = {
+    scale          = 3.5,
+    scale_for_many = 4,
+    shift          = {
+      0,
+      -0.9
+    }
+  },
+  ["warehouse-storage"]           = {
+    scale          = 3.5,
+    scale_for_many = 4,
+    shift          = {
+      0,
+      -0.9
+    }
+  },
+  ["warehouse-buffer"]            = {
+    scale          = 3.5,
+    scale_for_many = 4,
+    shift          = {
+      0,
+      -0.9
+    }
+  },
+  ["warehouse-requester"]         = {
+    scale          = 3.5,
+    scale_for_many = 4,
+    shift          = {
+      0,
+      -0.9
+    }
+  },
+  ["linked-warehouse"]            = {
+    scale          = 3.5,
+    scale_for_many = 4,
+    shift          = {
+      0,
+      -0.9
+    }
+  },
+  ["linked-storehouse"]           = {
+    scale          = 1.75,
+    scale_for_many = 2,
+    shift          = {
+      0,
+      -0.4
+    }
+  },
+  -- custom
+  ["roboport"]                    = {
+    scale          = 1,
+    scale_for_many = 1.5,
+    shift          = {0, 0.7},
+  },
+  ["mining-drill"]            = {
+    scale  = 1,
+    scale_for_many = 1,
+    shift = {0, 0},
+  }
 }

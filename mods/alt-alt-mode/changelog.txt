@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.2.4
+Version: 0.3.0
 Date: 2025-01-13
   Changes:
+    - Attempted to get all alt-alt-mode icon scales and positions as close as possible to the vanilla alt mode counterpart
     - Entities that are not selectable will not show any icons
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.4

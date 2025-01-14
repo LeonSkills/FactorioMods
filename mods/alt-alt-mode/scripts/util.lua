@@ -2,6 +2,36 @@ local function log(...)
   print(game.tick, "Alternative Alt Mode", ...)
 end
 
+local function get_target_offset(index, shift, x_scale, y_scale, num_columns, num_rows, separation_multiplier, y_centered)
+  if index > num_columns * num_rows then return end
+  local column = (index - 1) % num_columns + 1
+  local row = math.ceil(index / num_columns)
+  local x = (column - (num_columns + 1) / 2) * separation_multiplier * x_scale + shift[1]
+  local y
+  if y_centered then
+    y = (row - (num_rows + 1) / 2) * separation_multiplier * y_scale + shift[2]
+  else
+    y = (row - 1) * separation_multiplier * y_scale + shift[2]
+  end
+  return {x = x, y = y}
+end
+
+local function sort_inventory(inventory_contents)
+  table.sort(inventory_contents, function(s1, s2)
+    if s1.count == s2.count then
+      local prototype1 = prototypes.item[s1.name]
+      local order1 = prototype1.group.order .. prototype1.subgroup.order .. prototype1.order
+      local prototype2 = prototypes.item[s2.name]
+      local order2 = prototype2.group.order .. prototype2.subgroup.order .. prototype2.order
+      if order1 == order2 then
+        return prototypes.quality[s1.quality].order < prototypes.quality[s2.quality].order
+      end
+      return order1 < order2
+    end
+    return s1.count > s2.count
+  end)
+end
+
 local function fill_grid_with_largest_square(width, height, num_items)
   if width <= 0 or height <= 0 then
     return 0, 0, 1
@@ -152,5 +182,7 @@ return {
   box_center                    = box_center,
   rotate_around_point           = rotate_around_point,
   fill_grid_with_largest_square = fill_grid_with_largest_square,
+  get_target_offset             = get_target_offset,
   compare_versions              = compare_versions,
+  sort_inventory                = sort_inventory,
 }

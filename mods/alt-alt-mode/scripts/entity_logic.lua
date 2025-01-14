@@ -3,20 +3,18 @@ local draw_functions = require("__alt-alt-mode__/scripts/draw_functions")
 local constants = require("__alt-alt-mode__/scripts/constants")
 local circuit_network = require("__alt-alt-mode__/scripts/circuit_network")
 local icon_draw_specification = require("__alt-alt-mode__/scripts/icon_draw_specification")
+local icons_positioning = require("__alt-alt-mode__/scripts/icons_positioning")
 
 local function get_draw_specification(entity)
   -- see https://forums.factorio.com/viewtopic.php?f=28&t=125562&p=658621
-  local scale = 1
-  local shift = {0, 0}
-  local render_layer = "entity-info-icon"
-  local spec = icon_draw_specification[entity.name]
+  local spec = icon_draw_specification[entity.name] or icon_draw_specification[entity.type]
   if not spec then
     local dimension = math.min(
             entity.selection_box.right_bottom.x - entity.selection_box.left_top.x,
             entity.selection_box.right_bottom.y - entity.selection_box.left_top.y
     )
     if dimension <= 1.5 then
-      scale = dimension / 2
+      spec = {scale = dimension / 3}
     elseif dimension <= 2.5 then
       spec = icon_draw_specification["furnace"]
     elseif dimension <= 3.5 then
@@ -26,18 +24,34 @@ local function get_draw_specification(entity)
     elseif dimension <= 5.5 then
       spec = icon_draw_specification["cryogenic-plant"]
     else
-      scale = dimension / 3
+      spec = {scale = dimension / 3}
     end
   end
-  if spec then
-    scale = spec.scale or scale
-    shift = spec.shift or shift
-    render_layer = spec.render_layer or render_layer
-  end
+  spec = spec or {}
+  local scale = spec.scale or 1
+  local shift = spec.shift or {0, 0}
+  local render_layer = spec.render_layer or "entity-info-icon"
+  local scale_for_many = spec.scale_for_many or 1
   if render_layer == "entity-info-icon-below" then
     render_layer = "entity-info-icon"
   end
-  return scale, shift, render_layer
+  return shift, scale, scale_for_many, render_layer
+end
+
+local function get_icons_positioning(entity, inventory_index)
+  local spec = {}
+  if icons_positioning[entity.name] then
+    spec = icons_positioning[entity.name][inventory_index] or {}
+  end
+  local box = entity.prototype.selection_box
+  local width = box.right_bottom.x - box.left_top.x
+  local max_icons_per_row = spec.max_icons_per_row or math.floor(width / 0.75)
+  local max_icon_rows = spec.max_icon_rows or math.ceil(width / 1.5)
+  local scale = spec.scale or 0.5
+  local shift = spec.shift or {0, 0.7}
+  local separation_multiplier = spec.separation_multiplier or 1.1
+  local multi_row_initial_height_modifier = spec.multi_row_initial_height_modifier or -0.1
+  return {max_icons_per_row, max_icon_rows, shift, scale, separation_multiplier, multi_row_initial_height_modifier}
 end
 
 local function get_box_parameters(box, num_items, max_scale)
@@ -85,35 +99,94 @@ local function get_proxy_sprites(entity, item_requests)
   return sprites
 end
 
-local function draw_inventory_contents(player, entity, inventory, item_requests)
-  local contents = {}
-  if inventory and inventory.valid then
-    contents = inventory.get_contents()
-  end
+local function draw_inventory_contents(player, entity, inventory_define, contents, item_requests)
   local proxy_sprites = get_proxy_sprites(entity, item_requests)
-  if #contents + #proxy_sprites == 0 then return end
-  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #contents + #proxy_sprites)
-  if not scale then return end
+  local num_items = #contents + #proxy_sprites
+  if num_items == 0 then return end
+  local draw_shift, draw_scale, scale_for_many, render_layer = get_draw_specification(entity)
+  local scale = draw_scale * 0.9
+  local num_columns = 1
+  local num_rows = 1
+  local shift = draw_shift
+  local separation_multiplier = 0
+  if num_items > 1 then
+    -- local positioning = get_icons_positioning(entity, inventory_define)
+    local max_icons_per_row, max_icon_rows, icon_shift, icon_scale, sep_multiplier, multi_row_initial_height_modifier
+    -- if entity.type == "container" or entity.type == "infinity-chest" or entity.type == "logistic-chest" then
+    max_icons_per_row = 2
+    max_icon_rows = 2
+    icon_shift = {0, -1}
+    icon_scale = 0.5
+    separation_multiplier = 1.1
+    multi_row_initial_height_modifier = 1
+    -- end
+    scale = icon_scale * scale_for_many * 0.9
+    num_columns = math.min(num_items, max_icons_per_row)
+    num_rows = math.min(math.ceil(num_items / num_columns), max_icon_rows)
+    shift = {shift[1] + icon_shift[1], shift[2] + icon_shift[2] + multi_row_initial_height_modifier}
+  end
 
-  local center = util.box_center(entity.selection_box)
   for index, item in pairs(contents) do
     local text = {right_bottom = util.localise_number(item.count)}
-    local target = draw_functions.determine_sprite_position(
-            entity, center, index, items_per_row, items_per_column, scale / 0.8, entity.orientation
-    )
-    if target then
+    local offset = util.get_target_offset(index, shift, scale, scale, num_columns, num_rows, separation_multiplier, true)
+    if offset then
+      local target = {entity = entity, offset = offset}
       local sprite = "item." .. item.name
-      draw_functions.draw_sprite(player, entity, sprite, target, scale, text, prototypes.quality[item.quality])
+      draw_functions.draw_sprite(player, entity, sprite, target, scale, text, prototypes.quality[item.quality], "normal",
+                                 render_layer)
     end
   end
-  for index, sprite in pairs(proxy_sprites) do
-    local text = {right_bottom = util.localise_number(sprite.count)}
-    local target = draw_functions.determine_sprite_position(
-            entity, center, index + #contents, items_per_row, items_per_column, scale / 0.8, entity.orientation
-    )
-    draw_functions.draw_sprite(player, entity, sprite.sprite, target, scale, text, sprite.quality,
-                               sprite.background_type)
+  -- for index, sprite in pairs(proxy_sprites) do
+  --   local text = {right_bottom = util.localise_number(sprite.count)}
+  --   local target = draw_functions.determine_sprite_position(
+  --           entity, center, index + #contents, items_per_row, items_per_column, scale / 0.8, entity.orientation
+  --   )
+  --   draw_functions.draw_sprite(player, entity, sprite.sprite, target, scale, text, sprite.quality,
+  --                              sprite.background_type, render_layer)
+  -- end
+end
+
+local function draw_module_like(player, entity, contents, inventory_define)
+  local num_items = #contents
+  if num_items == 0 then return end
+  local positioning = get_icons_positioning(entity, inventory_define)
+  local max_icons_per_row = positioning[1]
+  local max_icon_rows = positioning[2]
+  local shift = positioning[3]
+  local scale = positioning[4]
+  local separation_multiplier = positioning[5]
+  local multi_row_initial_height_modifier = positioning[6]
+  local num_columns = math.min(num_items, max_icons_per_row)
+  local num_rows = math.min(math.ceil(num_items / num_columns), max_icon_rows)
+  if num_rows > 1 then
+    shift = {shift[1], shift[2] + multi_row_initial_height_modifier}
   end
+  for index = 1, #contents do
+    local icon_info = contents[index]
+    if icon_info and icon_info.valid and icon_info.count > 0 then
+      local offset = util.get_target_offset(index, shift, scale, scale / 0.9, num_columns, num_rows, separation_multiplier)
+      local target = {entity = entity, offset = offset}
+      local sprite = "item." .. icon_info.name
+      local quality = icon_info.quality
+      if type(quality) == "string" then
+        quality = prototypes[quality]
+      end
+      local text = {}
+      if icon_info.count > 1 then
+        text = {right_bottom = util.localise_number(icon_info.count)}
+      end
+      draw_functions.draw_sprite(player, entity, sprite, target, scale, text, quality, "normal")
+    end
+  end
+end
+
+local function draw_modules(player, entity, item_requests, inventory_define)
+  local inventory = entity.get_module_inventory() or {}
+  draw_module_like(player, entity, inventory, inventory_define)
+end
+
+local function draw_beacon_info(player, entity, item_requests)
+  draw_modules(player, entity, item_requests, defines.inventory.beacon_modules)
 end
 
 local function draw_fluid_wagon_contents(player, entity)
@@ -189,12 +262,30 @@ local function get_item_filter_quality(filter)
   return text, quality
 end
 
-local function draw_filters(player, entity, filters, blacklist, box)
-  box = box or entity.selection_box
-  local items_per_row, items_per_column, scale = get_box_parameters(box, #filters)
-  if not scale then return end
-
-  local center = util.box_center(box)
+local function draw_filters(player, entity, filters, blacklist)
+  local draw_shift, draw_scale, scale_for_many, render_layer = get_draw_specification(entity)
+  local scale = draw_scale * 0.9
+  local num_columns = 1
+  local num_rows = 1
+  local shift = draw_shift
+  local separation_multiplier = 0
+  local num_items = #filters
+  if num_items > 1 then
+    -- local positioning = get_icons_positioning(entity, inventory_define)
+    local max_icons_per_row, max_icon_rows, icon_shift, icon_scale, multi_row_initial_height_modifier
+    -- if entity.type == "container" or entity.type == "infinity-chest" or entity.type == "logistic-chest" then
+    max_icons_per_row = 2
+    max_icon_rows = 2
+    icon_shift = {0, -1}
+    icon_scale = 0.5
+    separation_multiplier = 1.1
+    multi_row_initial_height_modifier = 1
+    -- end
+    scale = icon_scale * scale_for_many * 0.9
+    num_columns = math.min(num_items, max_icons_per_row)
+    num_rows = math.min(math.ceil(num_items / num_columns), max_icon_rows)
+    shift = {shift[1] + icon_shift[1], shift[2] + icon_shift[2] + multi_row_initial_height_modifier}
+  end
   for index, filter in pairs(filters) do
     local sprite, text, quality
     if entity.type == "mining-drill" or entity.type == "entity-ghost" and entity.ghost_type == "mining-drill" then
@@ -208,10 +299,9 @@ local function draw_filters(player, entity, filters, blacklist, box)
         quality = nil
       end
     end
-    local target = draw_functions.determine_sprite_position(
-            entity, center, index, items_per_row, items_per_column, scale / 0.8, false
-    )
-    if target then
+    local offset = util.get_target_offset(index, shift, scale, scale, num_columns, num_rows, 1.1, true)
+    if offset then
+      local target = {entity = entity, offset = offset}
       draw_functions.draw_sprite(player, entity, sprite, target, scale, text, quality)
       if blacklist then
         local blacklist_sprite = rendering.draw_sprite {
@@ -222,7 +312,7 @@ local function draw_filters(player, entity, filters, blacklist, box)
           x_scale      = scale,
           y_scale      = scale,
           time_to_live = settings.global["alt-alt-update-interval"].value + 30,
-          render_layer = "wires-above",
+          render_layer = render_layer,
         }
         table.insert(storage[player.index], blacklist_sprite)
       end
@@ -234,7 +324,7 @@ local function get_and_draw_filters(player, entity, filter_mode, box)
   local control = entity.get_control_behavior()
   local filters = {}
   local signals
-  if control and entity.type ~= "mining-drill" and control.circuit_set_filters then
+  if control and control.type ~= defines.control_behavior.type.mining_drill and control.circuit_set_filters then
     signals = circuit_network.get_circuit_signals(entity, "item", true, false)
   end
   if signals then
@@ -362,7 +452,12 @@ end
 
 local function draw_agricultural_tower_info(player, entity, item_requests)
   local inventory = entity.get_output_inventory()
-  draw_inventory_contents(player, entity, inventory, item_requests)
+  local contents = {}
+  if inventory and inventory.valid then
+    contents = inventory.get_contents()
+    util.sort_inventory(contents)
+  end
+  draw_inventory_contents(player, entity, inventory, contents, item_requests)
 end
 
 local function draw_arithmetic_combinator_info(player, entity)
@@ -611,40 +706,22 @@ local function draw_splitter_info(player, entity)
   end
 end
 
-local function draw_modules(player, entity, item_requests, y_ratio)
-  -- y_ratio is the ratio of which the height of the entity where the modules are drawn
-  -- For crafting machines this is 2/5
-  -- Beacons get the whole width
-  if not y_ratio then
-    y_ratio = 1
-  end
-  local inventory = entity.get_module_inventory() or {}
-  -- rendering.draw_rectangle{surface=entity.surface, color={1,1,1}, width=1, left_top=module_box.left_top, right_bottom=module_box.right_bottom}
-  local sprites = get_proxy_sprites(entity, item_requests)
-  for index = 1, #inventory do
-    local item = inventory[index]
-    if item and item.valid and item.count > 0 then
-      table.insert(sprites, {
-        sprite  = "item." .. item.name,
-        count   = item.count,
-        quality = item.quality,
-      })
-    end
-  end
-  draw_functions.draw_module_like(player, entity, sprites, 0.5, y_ratio)
-  return #sprites > 0
-end
-
 local function draw_crafting_machine_info(player, entity, item_requests)
-  draw_modules(player, entity, item_requests, 2 / 5)
+  local inventory_define
+  if entity.type == "furnace" then
+    inventory_define = defines.inventory.furnace_modules
+  else
+    inventory_define = defines.inventory.assembling_machine_modules
+  end
+  draw_modules(player, entity, item_requests, inventory_define)
   local recipe, quality = entity.get_recipe()
   if not recipe then return end
   local sprite = "recipe." .. recipe.name
-  local scale, shift, render_layer = get_draw_specification(entity)
+  local shift, scale, _, render_layer = get_draw_specification(entity)
   scale = scale * 0.9
   local target = {entity = entity, offset = shift}
   if target then
-    draw_functions.draw_sprite(player, entity, sprite, target, scale, {}, quality, "normal")
+    draw_functions.draw_sprite(player, entity, sprite, target, scale, {}, quality, "normal", render_layer)
     if not recipe.enabled then
       local blacklist_sprite = rendering.draw_sprite {
         sprite       = 'alt-alt-filter-blacklist',
@@ -662,36 +739,29 @@ local function draw_crafting_machine_info(player, entity, item_requests)
 end
 
 local function draw_lab_info(player, entity, item_requests)
-  draw_modules(player, entity, item_requests, 1 / 3)
-  local inventory = entity.get_inventory(defines.inventory.lab_input)
-  draw_inventory_contents(player, entity, inventory)
+  draw_modules(player, entity, item_requests, defines.inventory.lab_modules)
+  local input_inventory = entity.get_inventory(defines.inventory.lab_input)
+  draw_module_like(player, entity, input_inventory, defines.inventory.lab_input)
 end
 
 local function draw_rocket_silo_info(player, entity, item_requests)
-  draw_modules(player, entity, item_requests, 1 / 3)
+  draw_modules(player, entity, item_requests, defines.inventory.rocket_silo_modules)
   local inventory = entity.get_inventory(defines.inventory.rocket_silo_rocket)
-  draw_inventory_contents(player, entity, inventory)
+  local contents = {}
+  if inventory and inventory.valid then
+    contents = inventory.get_contents()
+    util.sort_inventory(contents)
+  end
+  draw_inventory_contents(player, entity, defines.inventory.rocket_silo_rocket, contents)
 end
 
 local function draw_mining_drill_info(player, entity, item_requests)
   local filter_mode = entity.mining_drill_filter_mode
-  local y_ratio = 2 / 5
-  local has_modules = draw_modules(player, entity, item_requests, y_ratio)
-  local box = entity.selection_box
+  draw_modules(player, entity, item_requests, defines.inventory.mining_drill_modules)
   if filter_mode == nil then
     filter_mode = "none"
   end
-  if has_modules then
-    box = {
-      left_top     = box.left_top,
-      right_bottom = {
-        x = box.right_bottom.x,
-        y = box.right_bottom.y - math.max(1, (box.right_bottom.y - box.left_top.y) * y_ratio),
-      },
-    }
-  end
-  -- rendering.draw_rectangle{surface=entity.surface, color={1,1,1}, width=1, left_top=box.left_top, right_bottom=box.right_bottom, time_to_live=500}
-  get_and_draw_filters(player, entity, filter_mode, box)
+  get_and_draw_filters(player, entity, filter_mode, entity.selection_box)
 end
 
 local function draw_radar_info(player, entity)
@@ -839,8 +909,13 @@ end
 
 local function inventory_alt_info(inventory_define)
   local function draw(player, entity, item_requests)
+    local contents = {}
     local inventory = entity.get_inventory(inventory_define)
-    draw_inventory_contents(player, entity, inventory, item_requests)
+    if inventory and inventory.valid then
+      contents = inventory.get_contents()
+      util.sort_inventory(contents)
+    end
+    draw_inventory_contents(player, entity, inventory_define, contents, item_requests)
   end
   return draw
 end
@@ -865,7 +940,7 @@ local alt_functions_per_type = {
   ["car"]                      = inventory_alt_info(defines.inventory.car_trunk),
   ["locomotive"]               = inventory_alt_info(defines.inventory.fuel),
   ["cargo-wagon"]              = inventory_alt_info(defines.inventory.cargo_wagon),
-  ["beacon"]                   = draw_modules,
+  ["beacon"]                   = draw_beacon_info,
   ["mining-drill"]             = draw_mining_drill_info,
   ["artillery-wagon"]          = inventory_alt_info(defines.inventory.artillery_wagon_ammo),
   ["spider-vehicle"]           = inventory_alt_info(defines.inventory.spider_trunk),
