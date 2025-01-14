@@ -216,41 +216,26 @@ local function draw_fluid_wagon_contents(player, entity)
   draw_functions.draw_sprite(player, entity, sprite, target, scale, text, nil, false)
 end
 
-local function draw_fluid_contents(player, entity, no_text)
+local function draw_fluid_contents(player, entity, _, no_text)
   local contents = entity.fluidbox
   if not contents then return end
-  local fluids = {}
+  local sprites = {}
   for index = 1, #contents do
     local fluid = contents[index]
     if fluid and fluid.amount > 0 then
-      table.insert(fluids, fluid)
-    end
-  end
-  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #fluids, 3)
-  if not scale then return end
-  scale = scale * 0.65
-
-  local center = util.box_center(entity.selection_box)
-  for index = 1, #fluids do
-    local fluid = fluids[index]
-    if fluid then
-      local prototype = prototypes.fluid[fluid.name]
-      local sprite = "fluid." .. fluid.name
-      local text = {}
+      local sprite_info = {
+        sprite = "fluid." .. fluid.name
+      }
       if not no_text then
-        text = {right_bottom = util.localise_number(fluid.amount)}
-        if fluid.temperature ~= prototype.default_temperature then
-          text.right_top = {"", util.localise_number(fluid.temperature), {"si-unit-degree-celsius"}}
+        sprite_info.text = {right_bottom = util.localise_number(fluid.amount)}
+        if fluid.temperature ~= prototypes.fluid[fluid.name].default_temperature then
+          sprite_info.text.right_top = {"", util.localise_number(fluid.temperature), {"si-unit-degree-celsius"}}
         end
       end
-      local target = draw_functions.determine_sprite_position(
-              entity, center, index, items_per_row, items_per_column, scale / 0.8, false
-      )
-      if target then
-        draw_functions.draw_sprite(player, entity, sprite, target, scale, text, nil, false)
-      end
+      table.insert(sprites, sprite_info)
     end
   end
+  draw_chest_like(player, entity, sprites)
 end
 
 local function get_item_filter_quality(filter)
@@ -294,7 +279,7 @@ local function get_and_draw_filters(player, entity, filter_mode, box)
   local control = entity.get_control_behavior()
   local filters = {}
   local signals
-  if control  and control.circuit_set_filters then
+  if control and control.circuit_set_filters then
     signals = circuit_network.get_circuit_signals(entity, "item", true, false)
   end
   if signals then
@@ -341,37 +326,43 @@ local function draw_pump_filters(player, entity)
   local filter = entity.fluidbox.get_filter(1)
   if not filter then return end
   local text = {}
-  text.scale = 0.5
   if filter.minimum_temperature and filter.minimum_temperature ~= prototypes.fluid[filter.name].default_temperature then
     text.left_bottom = {"", "≥", util.localise_number(filter.minimum_temperature), {"si-unit-degree-celsius"}}
   end
   if filter.maximum_temperature and filter.maximum_temperature ~= prototypes.fluid[filter.name].max_temperature then
     text.left_top = {"", "≤", util.localise_number(filter.maximum_temperature), {"si-unit-degree-celsius"}}
   end
-  local target = {entity = entity, offset = {x = 0, y = 0}}
+  local shift, scale, _ , render_layer = get_draw_specification(entity)
+  local target = {entity = entity, offset = shift}
   local sprite_info = {
     sprite = "fluid." .. filter.name,
     text   = text,
-    scale = 0.75,
   }
-  draw_functions.draw_sprite(player, entity, sprite_info, target)
+  text.scale = scale * 0.7
+  draw_functions.draw_sprite(player, entity, sprite_info, target, scale * 0.9, render_layer)
 end
 
 local function draw_pipe_contents(player, entity)
+  if #entity.fluidbox == 0 then return end
   if (entity.position.x + entity.position.y) % 2 == 0 then
     -- Always draw icon when next to an underground pipe
-    for index = 1, #entity.fluidbox do
-      for _, connection in pairs(entity.fluidbox.get_pipe_connections(index)) do
-        if connection.connection_type == "normal" and connection.target and connection.target.owner.type == "pipe-to-ground" then
+    local pipe_connections = entity.fluidbox.get_pipe_connections(1)
+    local num_connections = 0
+    for _, connection in pairs(pipe_connections) do
+      if connection.connection_type == "normal" and connection.target then
+        if connection.target.owner.type == "pipe-to-ground" then
           goto continue
         end
+        num_connections = num_connections + 1
       end
     end
-    return
+    if num_connections > 0 then
+      return
+    end
   end
   :: continue ::
   local no_text = not settings.get_player_settings(player)["alt-alt-show-pipe-amount"].value
-  return draw_fluid_contents(player, entity, no_text)
+  return draw_fluid_contents(player, entity, nil, no_text)
 end
 
 local function draw_pipe_to_ground_contents(player, entity)
@@ -388,7 +379,7 @@ local function draw_pipe_to_ground_contents(player, entity)
   end
   :: continue ::
   local no_text = not settings.get_player_settings(player)["alt-alt-show-pipe-amount"].value
-  return draw_fluid_contents(player, entity, no_text)
+  return draw_fluid_contents(player, entity, nil, no_text)
 end
 
 local function draw_accumulator_info(player, entity)
@@ -697,7 +688,7 @@ local function draw_crafting_machine_info(player, entity, item_requests)
   if target then
     draw_functions.draw_sprite(player, entity, sprite_info, target, scale * 0.9, render_layer)
     if not recipe.enabled then
-      draw_functions.draw_blacklist_filter(player, entity, target, scale*1.8, render_layer)
+      draw_functions.draw_blacklist_filter(player, entity, target, scale * 1.8, render_layer)
     end
   end
 end
@@ -730,7 +721,11 @@ local function draw_mining_drill_info(player, entity, item_requests)
     local filter = entity.get_filter(filter_index)
     if filter then
       local sprite_info = {}
-      sprite_info.sprite = "item." .. filter.name
+      if prototypes.item[filter.name] then
+        sprite_info.sprite = "item." .. filter.name
+      else
+        sprite_info.sprite = "fluid." .. filter.name
+      end
       if filter_mode == "blacklist" then
         sprite_info.blacklist = true
       end

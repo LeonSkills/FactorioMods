@@ -151,7 +151,9 @@ local function draw_sub_text(player, entity, text, target, text_scale, x_offset,
                              render_layer)
   if not text then return end
   render_layer = render_layer or default_render_layer
-  local target_text = {entity = entity, offset = {x = target.offset.x + x_offset, y = target.offset.y + y_offset}}
+  local offset_x = x_offset + (target.offset.x or target.offset[1])
+  local offset_y = y_offset + (target.offset.y or target.offset[2])
+  local target_text = {entity = entity, offset = {x = offset_x, y = offset_y}}
   local text_sprite = rendering.draw_text {
     text               = text,
     players            = {player},

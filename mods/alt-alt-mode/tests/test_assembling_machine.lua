@@ -20,7 +20,7 @@ tests.test_assembling_machine = function(player)
   util_tests.assert_equal_position(recipe.target.offset, {x = 0, y = -0.3}, serpent.line(recipe.target.offset))
   assert(recipe.x_scale == 0.9, recipe.x_scale)
   assert(recipe.y_scale == 0.9, recipe.y_scale)
-  entity.destroy()
+  return entity
 end
 
 tests.test_cryogenic_plant = function(player)
@@ -67,7 +67,7 @@ tests.test_cryogenic_plant = function(player)
   assert(blacklisted.x_scale == 1.8 * 2, blacklisted.x_scale)
   assert(blacklisted.y_scale == 1.8 * 2, blacklisted.y_scale)
   force.recipes["plastic-bar"].enabled = recipe_enabled
-  entity.destroy()
+  return entity
 end
 
 tests.test_electromagnetic_plant = function(player)
@@ -87,7 +87,7 @@ tests.test_electromagnetic_plant = function(player)
   util_tests.assert_equal_position(recipe.target.offset, {x = 0, y = -0.25}, serpent.line(recipe.target.offset))
   assert(recipe.x_scale == 0.9, recipe.x_scale)
   assert(recipe.y_scale == 0.9, recipe.y_scale)
-  entity.destroy()
+  return entity
 end
 
 for _, direction in pairs({"north", "east"}) do
@@ -117,7 +117,7 @@ for _, direction in pairs({"north", "east"}) do
     assert(mod1.y_scale == 0.5, mod1.y_scale)
     assert(mod2.x_scale == 0.5, mod2.x_scale)
     assert(mod2.y_scale == 0.5, mod2.y_scale)
-    entity.destroy()
+    return entity
   end
 end
 

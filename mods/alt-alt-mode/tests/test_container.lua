@@ -21,7 +21,7 @@ tests.test_chest = function(player)
   assert(item.x_scale == 0.9 * 0.7, item.x_scale)
   assert(item.y_scale == 0.9 * 0.7, item.y_scale)
   assert(text.text[3] == "3", text.text[3])
-  entity.destroy()
+  return entity
 end
 
 tests.test_chest_3_items = function(player)
@@ -56,7 +56,7 @@ tests.test_chest_3_items = function(player)
     assert(bg.sprite == "alt-alt-entity-info-white-background", i .. ", " .. sprites[1].sprite)
     util_tests.assert_equal_array(bg.color, expected_bg_colors[i], i .. ", " .. serpent.line(bg.color))
   end
-  entity.destroy()
+  return entity
 end
 
 tests.test_chest_5_items = function(player)
@@ -94,7 +94,7 @@ tests.test_chest_5_items = function(player)
     assert(bg.sprite == "alt-alt-entity-info-white-background", sprites[1].sprite)
     util_tests.assert_equal_array(bg.color, expected_bg_colors[i], serpent.line(bg.color))
   end
-  entity.destroy()
+  return entity
 end
 
 return tests
