@@ -8,6 +8,7 @@ for _, temperature in pairs({15, 500}) do
     local entity = player.surface.create_entity {
       name = "storage-tank", position = player.position, force = player.force, create_build_effect_smoke = false
     }
+    assert(#storage[player.index] == 0, "Some sprites where drawn when it shouldn't have")
     entity.insert_fluid {name = "steam", amount = 23492, temperature = temperature}
     entity_logic.show_alt_info_for_entity(player, entity)
     local sprites = storage[player.index]
@@ -43,6 +44,8 @@ for _, entity_name in pairs({"pipe", "pipe-to-ground", "infinity-pipe"}) do
       local entity = player.surface.create_entity {
         name = entity_name, position = player.position, force = player.force, create_build_effect_smoke = false
       }
+      entity_logic.show_alt_info_for_entity(player, entity)
+      assert(#storage[player.index] == 0, "Some sprites where drawn when it shouldn't have")
       entity.insert_fluid {name = "steam", amount = 34, temperature = temperature}
       entity_logic.show_alt_info_for_entity(player, entity)
       local sprites = storage[player.index]
