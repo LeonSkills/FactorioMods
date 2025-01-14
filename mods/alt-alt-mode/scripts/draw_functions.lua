@@ -1,5 +1,7 @@
 local util = require("__alt-alt-mode__/scripts/util.lua")
 
+local default_render_layer = "entity-info-icon"
+
 local function remove_all_sprites(player)
   if storage[player.index] then
     for _, sprite in pairs(storage[player.index]) do
@@ -49,27 +51,18 @@ local function draw_radius_indicator(player, position, radius, time_to_live)
   storage.change_radius_events[player.index] = render.id
 end
 
-local function determine_offset(index, num_columns, num_rows, scale)
-  local x = (index - 1) % num_columns
-  local y = math.floor((index - 1) / num_columns)
-  if y >= num_rows then return end
-  local pos_x = (x - (num_columns - 1) / 2) * scale
-  local pos_y = (y - (num_rows - 1) / 2) * scale
-  return {x = pos_x, y = pos_y}
-end
-
-local function get_target(entity, center, offset, use_direction)
-  offset = {
-    x = center.x + offset.x,
-    y = center.y + offset.y
+local function draw_blacklist_filter(player, entity, target, scale, render_layer)
+  local blacklist_sprite = rendering.draw_sprite {
+    sprite       = 'alt-alt-filter-blacklist',
+    players      = {player},
+    target       = target,
+    surface      = entity.surface,
+    x_scale      = scale,
+    y_scale      = scale,
+    time_to_live = settings.global["alt-alt-update-interval"].value + 30,
+    render_layer = render_layer or default_render_layer,
   }
-  if use_direction then
-    util.rotate_around_point(offset, {x = 0, y = 0}, entity.direction / 16)
-  end
-  return {
-    entity = entity,
-    offset = offset
-  }
+  table.insert(storage[player.index], blacklist_sprite)
 end
 
 local function determine_sprite_position(entity, center, index, num_columns, num_rows, scale, use_orientation)
@@ -135,7 +128,7 @@ local function draw_text_sprite(
   color = color or {1, 1, 1}
   alignment = alignment or "center"
   vertical_alignment = vertical_alignment or "middle"
-  render_layer = render_layer or "entity-info-icon"
+  render_layer = render_layer or default_render_layer
   if background_scale then
     draw_background(player, entity, target, background_scale * 0.45, background_tint, render_layer)
   end
@@ -157,7 +150,7 @@ end
 local function draw_sub_text(player, entity, text, target, text_scale, x_offset, y_offset, alignment, vertical_alignment,
                              render_layer)
   if not text then return end
-  render_layer = render_layer or "entity-info-icon"
+  render_layer = render_layer or default_render_layer
   local target_text = {entity = entity, offset = {x = target.offset.x + x_offset, y = target.offset.y + y_offset}}
   local text_sprite = rendering.draw_text {
     text               = text,
@@ -174,26 +167,29 @@ local function draw_sub_text(player, entity, text, target, text_scale, x_offset,
   table.insert(storage[player.index], text_sprite)
 end
 
-local function draw_sprite(player, entity, main_sprite, target, scale, text, quality_prototype, background_type, render_layer)
+local function draw_sprite(player, entity, sprite_info, target, scale, render_layer)
+  -- sprite_info contains: sprite, text, background_type, quality_prototype and blacklist
   if not target then return end
   if not scale then return end
-  render_layer = render_layer or "entity-info-icon"
+  render_layer = render_layer or default_render_layer
   local tint = {0, 0, 0}
+  local quality_prototype = sprite_info.quality_prototype
+  local text = sprite_info.text
   if quality_prototype and settings.get_player_settings(player)["alt-alt-show-quality-background"].value then
     if quality_prototype.name ~= "normal" and quality_prototype.color then
       tint = quality_prototype.color
     end
   end
   local show_badge = settings.get_player_settings(player)["alt-alt-show-quality-badge"].value
-  if not background_type or background_type == "normal" then
+  if not sprite_info.background_type or sprite_info.background_type == "normal" then
     draw_background(player, entity, target, scale, tint, render_layer)
-  elseif background_type == "proxy" then
+  elseif sprite_info.background_type == "proxy" then
     draw_request_background(player, entity, target, scale * 2, render_layer)
     show_badge = true
   end
-  if main_sprite then
+  if sprite_info.sprite then
     local sprite_main = rendering.draw_sprite {
-      sprite       = main_sprite,
+      sprite       = sprite_info.sprite,
       players      = {player},
       target       = target,
       surface      = entity.surface,
@@ -234,6 +230,9 @@ local function draw_sprite(player, entity, main_sprite, target, scale, text, qua
       render_layer = render_layer
     }
     table.insert(storage[player.index], quality_sprite)
+  end
+  if sprite_info.blacklist then
+    draw_blacklist_filter(player, entity, target, scale, render_layer)
   end
 end
 
@@ -279,7 +278,6 @@ local function draw_signal_constant(player, entity, constant, target)
   draw_text_sprite(player, entity, text, target, scale, nil, 0.8)
 end
 
-
 return {
   draw_radius_indicator     = draw_radius_indicator,
   remove_radius_indicator   = remove_radius_indicator,
@@ -289,5 +287,6 @@ return {
   determine_sprite_position = determine_sprite_position,
   draw_signal_id_sprite     = draw_signal_id_sprite,
   draw_signal_constant      = draw_signal_constant,
-  draw_request_background   = draw_request_background
+  draw_request_background   = draw_request_background,
+  draw_blacklist_filter     = draw_blacklist_filter,
 }

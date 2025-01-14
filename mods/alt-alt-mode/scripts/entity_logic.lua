@@ -99,9 +99,8 @@ local function get_proxy_sprites(entity, item_requests)
   return sprites
 end
 
-local function draw_inventory_contents(player, entity, inventory_define, contents, item_requests)
-  local proxy_sprites = get_proxy_sprites(entity, item_requests)
-  local num_items = #contents + #proxy_sprites
+local function draw_chest_like(player, entity, sprites)
+  local num_items = #sprites
   if num_items == 0 then return end
   local draw_shift, draw_scale, scale_for_many, render_layer = get_draw_specification(entity)
   local scale = draw_scale * 0.9
@@ -110,9 +109,7 @@ local function draw_inventory_contents(player, entity, inventory_define, content
   local shift = draw_shift
   local separation_multiplier = 0
   if num_items > 1 then
-    -- local positioning = get_icons_positioning(entity, inventory_define)
-    local max_icons_per_row, max_icon_rows, icon_shift, icon_scale, sep_multiplier, multi_row_initial_height_modifier
-    -- if entity.type == "container" or entity.type == "infinity-chest" or entity.type == "logistic-chest" then
+    local max_icons_per_row, max_icon_rows, icon_shift, icon_scale, multi_row_initial_height_modifier
     max_icons_per_row = 2
     max_icon_rows = 2
     icon_shift = {0, -1}
@@ -126,24 +123,29 @@ local function draw_inventory_contents(player, entity, inventory_define, content
     shift = {shift[1] + icon_shift[1], shift[2] + icon_shift[2] + multi_row_initial_height_modifier}
   end
 
-  for index, item in pairs(contents) do
-    local text = {right_bottom = util.localise_number(item.count)}
+  for index, sprite_info in pairs(sprites) do
     local offset = util.get_target_offset(index, shift, scale, scale, num_columns, num_rows, separation_multiplier, true)
     if offset then
       local target = {entity = entity, offset = offset}
-      local sprite = "item." .. item.name
-      draw_functions.draw_sprite(player, entity, sprite, target, scale, text, prototypes.quality[item.quality], "normal",
-                                 render_layer)
+      draw_functions.draw_sprite(player, entity, sprite_info, target, scale, render_layer)
     end
   end
-  -- for index, sprite in pairs(proxy_sprites) do
-  --   local text = {right_bottom = util.localise_number(sprite.count)}
-  --   local target = draw_functions.determine_sprite_position(
-  --           entity, center, index + #contents, items_per_row, items_per_column, scale / 0.8, entity.orientation
-  --   )
-  --   draw_functions.draw_sprite(player, entity, sprite.sprite, target, scale, text, sprite.quality,
-  --                              sprite.background_type, render_layer)
-  -- end
+
+end
+
+local function draw_inventory_contents(player, entity, inventory_define, contents, item_requests)
+  local proxy_sprites = get_proxy_sprites(entity, item_requests)
+  if #contents == 0 then return end
+  local sprites = {}
+  for i = 1, math.min(4, #contents) do
+    local item = contents[i]
+    local sprite_info = {}
+    sprite_info.sprite = "item." .. item.name
+    sprite_info.text = {right_bottom = util.localise_number(item.count)}
+    sprite_info.quality_prototype = prototypes.quality[item.quality]
+    sprites[i] = sprite_info
+  end
+  draw_chest_like(player, entity, sprites)
 end
 
 local function draw_module_like(player, entity, contents, inventory_define)
@@ -166,16 +168,19 @@ local function draw_module_like(player, entity, contents, inventory_define)
     if icon_info and icon_info.valid and icon_info.count > 0 then
       local offset = util.get_target_offset(index, shift, scale, scale / 0.9, num_columns, num_rows, separation_multiplier)
       local target = {entity = entity, offset = offset}
-      local sprite = "item." .. icon_info.name
+      local sprite_info = {}
+      sprite_info.sprite = "item." .. icon_info.name
       local quality = icon_info.quality
       if type(quality) == "string" then
-        quality = prototypes[quality]
+        sprite_info.quality_prototype = prototypes[quality]
+      else
+        sprite_info.quality_prototype = quality
       end
-      local text = {}
+      sprite_info.text = {}
       if icon_info.count > 1 then
-        text = {right_bottom = util.localise_number(icon_info.count)}
+        sprite_info.text = {right_bottom = util.localise_number(icon_info.count)}
       end
-      draw_functions.draw_sprite(player, entity, sprite, target, scale, text, quality, "normal")
+      draw_functions.draw_sprite(player, entity, sprite_info, target, scale)
     end
   end
 end
@@ -263,68 +268,33 @@ local function get_item_filter_quality(filter)
 end
 
 local function draw_filters(player, entity, filters, blacklist)
-  local draw_shift, draw_scale, scale_for_many, render_layer = get_draw_specification(entity)
-  local scale = draw_scale * 0.9
-  local num_columns = 1
-  local num_rows = 1
-  local shift = draw_shift
-  local separation_multiplier = 0
-  local num_items = #filters
-  if num_items > 1 then
-    -- local positioning = get_icons_positioning(entity, inventory_define)
-    local max_icons_per_row, max_icon_rows, icon_shift, icon_scale, multi_row_initial_height_modifier
-    -- if entity.type == "container" or entity.type == "infinity-chest" or entity.type == "logistic-chest" then
-    max_icons_per_row = 2
-    max_icon_rows = 2
-    icon_shift = {0, -1}
-    icon_scale = 0.5
-    separation_multiplier = 1.1
-    multi_row_initial_height_modifier = 1
-    -- end
-    scale = icon_scale * scale_for_many * 0.9
-    num_columns = math.min(num_items, max_icons_per_row)
-    num_rows = math.min(math.ceil(num_items / num_columns), max_icon_rows)
-    shift = {shift[1] + icon_shift[1], shift[2] + icon_shift[2] + multi_row_initial_height_modifier}
-  end
+  local sprites = {}
   for index, filter in pairs(filters) do
-    local sprite, text, quality
+    local sprite_info = {}
+    local text, quality
     if entity.type == "mining-drill" or entity.type == "entity-ghost" and entity.ghost_type == "mining-drill" then
-      sprite = "entity." .. filter.name
+      sprite_info.sprite = "entity." .. filter.name
     else
       text, quality = get_item_filter_quality(filter)
+      sprite_info.text = text
+      sprite_info.quality_prototype = quality
+      sprite_info.blacklist = blacklist
       if filter.name then
-        sprite = "item." .. filter.name
+        sprite_info.sprite = "item." .. filter.name
       else
-        sprite = "quality." .. quality.name
-        quality = nil
+        sprite_info.sprite = "quality." .. quality.name
       end
     end
-    local offset = util.get_target_offset(index, shift, scale, scale, num_columns, num_rows, 1.1, true)
-    if offset then
-      local target = {entity = entity, offset = offset}
-      draw_functions.draw_sprite(player, entity, sprite, target, scale, text, quality)
-      if blacklist then
-        local blacklist_sprite = rendering.draw_sprite {
-          sprite       = 'alt-alt-filter-blacklist',
-          players      = {player},
-          target       = target,
-          surface      = entity.surface,
-          x_scale      = scale,
-          y_scale      = scale,
-          time_to_live = settings.global["alt-alt-update-interval"].value + 30,
-          render_layer = render_layer,
-        }
-        table.insert(storage[player.index], blacklist_sprite)
-      end
-    end
+    sprites[index] = sprite_info
   end
+  draw_chest_like(player, entity, sprites)
 end
 
 local function get_and_draw_filters(player, entity, filter_mode, box)
   local control = entity.get_control_behavior()
   local filters = {}
   local signals
-  if control and control.type ~= defines.control_behavior.type.mining_drill and control.circuit_set_filters then
+  if control  and control.circuit_set_filters then
     signals = circuit_network.get_circuit_signals(entity, "item", true, false)
   end
   if signals then
@@ -347,9 +317,8 @@ local function get_and_draw_filters(player, entity, filter_mode, box)
     return
   end
   if #filters == 0 then
-    local entity_type = entity.type == "entity-ghost" and entity.ghost_type or entity.type
-    if filter_mode == "blacklist" or filter_mode == "none" or entity_type == "mining-drill" then return end
-    draw_functions.draw_sprite(player, entity, "alt-alt-filter-blacklist", entity, 0.45)
+    if filter_mode == "blacklist" or filter_mode == "none" then return end
+    draw_functions.draw_blacklist_filter(player, entity, entity, 0.9)
     return
   end
   draw_filters(player, entity, filters, filter_mode == "blacklist", box)
@@ -380,8 +349,12 @@ local function draw_pump_filters(player, entity)
     text.left_top = {"", "≤", util.localise_number(filter.maximum_temperature), {"si-unit-degree-celsius"}}
   end
   local target = {entity = entity, offset = {x = 0, y = 0}}
-  draw_functions.draw_sprite(player, entity, "fluid." .. filter.name, target, 0.75, text)
-
+  local sprite_info = {
+    sprite = "fluid." .. filter.name,
+    text   = text,
+    scale = 0.75,
+  }
+  draw_functions.draw_sprite(player, entity, sprite_info, target)
 end
 
 local function draw_pipe_contents(player, entity)
@@ -716,24 +689,15 @@ local function draw_crafting_machine_info(player, entity, item_requests)
   draw_modules(player, entity, item_requests, inventory_define)
   local recipe, quality = entity.get_recipe()
   if not recipe then return end
-  local sprite = "recipe." .. recipe.name
+  local sprite_info = {}
+  sprite_info.sprite = "recipe." .. recipe.name
+  sprite_info.quality_prototype = quality
   local shift, scale, _, render_layer = get_draw_specification(entity)
-  scale = scale * 0.9
   local target = {entity = entity, offset = shift}
   if target then
-    draw_functions.draw_sprite(player, entity, sprite, target, scale, {}, quality, "normal", render_layer)
+    draw_functions.draw_sprite(player, entity, sprite_info, target, scale * 0.9, render_layer)
     if not recipe.enabled then
-      local blacklist_sprite = rendering.draw_sprite {
-        sprite       = 'alt-alt-filter-blacklist',
-        players      = {player},
-        target       = target,
-        surface      = entity.surface,
-        x_scale      = scale,
-        y_scale      = scale,
-        time_to_live = settings.global["alt-alt-update-interval"].value + 30,
-        render_layer = "wires-above",
-      }
-      table.insert(storage[player.index], blacklist_sprite)
+      draw_functions.draw_blacklist_filter(player, entity, target, scale*1.8, render_layer)
     end
   end
 end
@@ -761,7 +725,19 @@ local function draw_mining_drill_info(player, entity, item_requests)
   if filter_mode == nil then
     filter_mode = "none"
   end
-  get_and_draw_filters(player, entity, filter_mode, entity.selection_box)
+  local sprites = {}
+  for filter_index = 1, entity.filter_slot_count do
+    local filter = entity.get_filter(filter_index)
+    if filter then
+      local sprite_info = {}
+      sprite_info.sprite = "item." .. filter.name
+      if filter_mode == "blacklist" then
+        sprite_info.blacklist = true
+      end
+      table.insert(sprites, sprite_info)
+    end
+  end
+  draw_chest_like(player, entity, sprites)
 end
 
 local function draw_radar_info(player, entity)
@@ -1003,8 +979,11 @@ local function show_quality_icon(player, entity)
       util.rotate_around_point(offset, center, entity.orientation)
     end
     local target = {entity = entity, offset = offset}
-    local sprite = "quality." .. entity.quality.name
-    draw_functions.draw_sprite(player, entity, sprite, target, scale, {}, nil, true)
+    local sprite_info = {
+      sprite          = "quality." .. entity.quality.name,
+      background_type = "quality_badge"
+    }
+    draw_functions.draw_sprite(player, entity, sprite_info, target, scale)
   end
 end
 
