@@ -33,6 +33,7 @@ add_tests(require("__alt-alt-mode__/tests/test_constant_combinator.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_arithmetic_combinator.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_decider_combinator.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_mineables.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_cargo_wagon.lua"))
 
 local function run_tests(player)
   clean_sprites(player, false)
@@ -42,8 +43,16 @@ local function run_tests(player)
     local success, ret = xpcall(func, debug.traceback, player)
     if success then
       if ret then
-        tested_entity_types[ret.type] = true
-        ret.destroy()
+        if type(ret) == "table" then  -- testing rolling stock
+          tested_entity_types[ret[1].type] = true
+          ret[1].destroy()
+          for _, entity in pairs(ret[2]) do
+            entity.destroy()
+          end
+        else
+          tested_entity_types[ret.type] = true
+          ret.destroy()
+        end
       end
     else
       error("Test '" .. test_name .. "' failed. " .. ret)
@@ -59,7 +68,7 @@ local function run_tests(player)
     end
   end
   if #not_tested > 0 then
-    game.print("No test for "..  # not_tested.. " types: " .. serpent.line(not_tested))
+    game.print("No test for " .. #not_tested .. " types: " .. serpent.line(not_tested))
   else
     game.print("All types tested!")
   end

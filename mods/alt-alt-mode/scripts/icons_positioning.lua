@@ -78,7 +78,7 @@ return {
       inventory_index = 3,
       shift           = {
         0,
-        1.6000000000000001
+        1.6
       }
     },
     [2] = {
@@ -96,7 +96,7 @@ return {
       inventory_index = 4,
       shift           = {
         0,
-        3.2999999999999998
+        3.3
       }
     },
   },

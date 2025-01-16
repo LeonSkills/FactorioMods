@@ -29,7 +29,7 @@ return {
     }
   },
   ["steel-furnace"]               = {
-    scale = 0.66000000000000005,
+    scale = 0.66,
     shift = {
       0,
       -0.1

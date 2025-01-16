@@ -90,3 +90,7 @@ test_util.bg_sprite = "alt-alt-entity-info-white-background"
 test_util.black = {a = 1, r = 0, g = 0, b = 0}
 
 return test_util
+
+-- \.([0-9]+)49{3,}[0-9]+
+
+-- {a = 1, b = 0.23921568691730499, g = 0.64705884456634521, r = 0.16862745583057404} -- uncommon
