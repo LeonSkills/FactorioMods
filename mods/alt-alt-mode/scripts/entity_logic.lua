@@ -54,6 +54,32 @@ local function get_icons_positioning(entity, inventory_index)
   return {max_icons_per_row, max_icon_rows, shift, scale, separation_multiplier, multi_row_initial_height_modifier}
 end
 
+local function get_icons_positioning_chest_like(entity, num_items)
+  local final_shift, draw_scale, scale_for_many, render_layer = get_draw_specification(entity)
+  local max_icons_per_row = 2
+  local max_icon_rows = 2
+  if entity.type == "cargo-wagon" then
+    max_icons_per_row = 1
+    max_icon_rows = 4
+  end
+  local scale = draw_scale * 0.9
+  local num_columns = 1
+  local num_rows = 1
+  local before_shift = {0, 0}
+  local separation_multiplier = 0
+  if num_items > 1 then
+    local icon_shift = {0, -1}
+    local icon_scale = 0.5
+    separation_multiplier = 1.1
+    local multi_row_initial_height_modifier = 1
+    scale = icon_scale * scale_for_many * 0.9
+    num_columns = math.min(num_items, max_icons_per_row)
+    num_rows = math.min(math.ceil(num_items / num_columns), max_icon_rows)
+    before_shift = {before_shift[1] + icon_shift[1], before_shift[2] + icon_shift[2] + multi_row_initial_height_modifier}
+  end
+  return before_shift, final_shift, scale, num_columns, num_rows, separation_multiplier, render_layer
+end
+
 local function get_box_parameters(box, num_items, max_scale)
   max_scale = max_scale or constants.max_scale
   if num_items == 0 then return end
@@ -99,33 +125,18 @@ local function get_proxy_sprites(entity, item_requests)
   return sprites
 end
 
-local function draw_chest_like(player, entity, sprites)
+local function draw_chest_like(player, entity, sprites, use_orientation)
   local num_items = #sprites
   if num_items == 0 then return end
-  local draw_shift, draw_scale, scale_for_many, render_layer = get_draw_specification(entity)
-  local scale = draw_scale * 0.9
-  local num_columns = 1
-  local num_rows = 1
-  local shift = draw_shift
-  local separation_multiplier = 0
-  if num_items > 1 then
-    local max_icons_per_row, max_icon_rows, icon_shift, icon_scale, multi_row_initial_height_modifier
-    max_icons_per_row = 2
-    max_icon_rows = 2
-    icon_shift = {0, -1}
-    icon_scale = 0.5
-    separation_multiplier = 1.1
-    multi_row_initial_height_modifier = 1
-    -- end
-    scale = icon_scale * scale_for_many * 0.9
-    num_columns = math.min(num_items, max_icons_per_row)
-    num_rows = math.min(math.ceil(num_items / num_columns), max_icon_rows)
-    shift = {shift[1] + icon_shift[1], shift[2] + icon_shift[2] + multi_row_initial_height_modifier}
-  end
-
+  local before_shift, final_shift, scale, num_columns, num_rows, separation_multiplier, render_layer = get_icons_positioning_chest_like(entity, num_items)
   for index, sprite_info in pairs(sprites) do
-    local offset = util.get_target_offset(index, shift, scale, scale, num_columns, num_rows, separation_multiplier, true)
+    local offset = util.get_target_offset(index, before_shift, scale, scale, num_columns, num_rows, separation_multiplier, true)
     if offset then
+      offset.x = offset.x + final_shift[1]
+      offset.y = offset.y + final_shift[2]
+      if use_orientation then
+        util.rotate_around_point(offset, {x=0, y=0.0}, entity.orientation)
+      end
       local target = {entity = entity, offset = offset}
       draw_functions.draw_sprite(player, entity, sprite_info, target, scale, render_layer)
     end
@@ -133,7 +144,7 @@ local function draw_chest_like(player, entity, sprites)
 
 end
 
-local function draw_inventory_contents(player, entity, inventory_define, contents, item_requests)
+local function draw_inventory_contents(player, entity, inventory_define, contents, item_requests, use_orientation)
   local proxy_sprites = get_proxy_sprites(entity, item_requests)
   if #contents == 0 then return end
   local sprites = {}
@@ -145,7 +156,7 @@ local function draw_inventory_contents(player, entity, inventory_define, content
     sprite_info.quality_prototype = prototypes.quality[item.quality]
     sprites[i] = sprite_info
   end
-  draw_chest_like(player, entity, sprites)
+  draw_chest_like(player, entity, sprites, use_orientation)
 end
 
 local function draw_module_like(player, entity, contents, inventory_define)
@@ -332,7 +343,7 @@ local function draw_pump_filters(player, entity)
   if filter.maximum_temperature and filter.maximum_temperature ~= prototypes.fluid[filter.name].max_temperature then
     text.left_top = {"", "≤", util.localise_number(filter.maximum_temperature), {"si-unit-degree-celsius"}}
   end
-  local shift, scale, _ , render_layer = get_draw_specification(entity)
+  local shift, scale, _, render_layer = get_draw_specification(entity)
   local target = {entity = entity, offset = shift}
   local sprite_info = {
     sprite = "fluid." .. filter.name,
@@ -433,22 +444,12 @@ local function draw_arithmetic_combinator_info(player, entity)
   local second_signal_target = {entity = entity, offset = {x = x_offset, y = -y_offset}}
   local output_signal_target = {entity = entity, offset = {x = 0, y = y_offset}}
   local op_target = {entity = entity, offset = {x = 0, y = -y_offset}}
-  if parameters.first_signal then
-    draw_functions.draw_signal_id_sprite(player, entity, parameters.first_signal, first_signal_target, 0.45, nil,
-                                         parameters.first_signal_networks.red, parameters.first_signal_networks.green)
-  else
-    draw_functions.draw_signal_constant(player, entity, parameters.first_constant, first_signal_target)
-  end
-  if parameters.second_signal then
-    draw_functions.draw_signal_id_sprite(player, entity, parameters.second_signal, second_signal_target, 0.45, nil,
-                                         parameters.second_signal_networks.red, parameters.second_signal_networks.green)
-  else
-    draw_functions.draw_signal_constant(player, entity, parameters.second_constant, second_signal_target)
-  end
+
   local operation = parameters.operation
   local operator_scale = 1
   if operation == "XOR" then
     operation = "⊕"
+    operator_scale = 0.75
   elseif operation == "AND" then
     operation = "&"
     operator_scale = 0.75
@@ -463,6 +464,18 @@ local function draw_arithmetic_combinator_info(player, entity)
     operator_scale = 0.75
   end
   draw_functions.draw_text_sprite(player, entity, operation, op_target, operator_scale)
+  if parameters.first_signal then
+    draw_functions.draw_signal_id_sprite(player, entity, parameters.first_signal, first_signal_target, 0.45, nil,
+                                         parameters.first_signal_networks.red, parameters.first_signal_networks.green)
+  else
+    draw_functions.draw_signal_constant(player, entity, parameters.first_constant, first_signal_target)
+  end
+  if parameters.second_signal then
+    draw_functions.draw_signal_id_sprite(player, entity, parameters.second_signal, second_signal_target, 0.45, nil,
+                                         parameters.second_signal_networks.red, parameters.second_signal_networks.green)
+  else
+    draw_functions.draw_signal_constant(player, entity, parameters.second_constant, second_signal_target)
+  end
   if parameters.output_signal then
     local text
     -- if parameters.output_signal.name ~= "signal-each" then
@@ -483,30 +496,29 @@ local function draw_decider_combinator_info(player, entity)
   local op_target = {entity = entity, offset = {x = 0, y = -y_offset}}
   local condition = control.get_condition(1)
   if condition then
+    draw_functions.draw_text_sprite(player, entity, condition.comparator, op_target)
     if condition.first_signal then
-      draw_functions.draw_signal_id_sprite(player, entity, condition.first_signal, first_signal_target, 0.45, nil,
-                                           condition.first_signal_networks.red, condition.first_signal_networks.green)
+      draw_functions.draw_signal_id_sprite(player, entity, condition.first_signal, first_signal_target, 0.45, nil, condition.first_signal_networks.red,
+                                           condition.first_signal_networks.green)
     end
     if condition.second_signal then
-      draw_functions.draw_signal_id_sprite(player, entity, condition.second_signal, second_signal_target, 0.45, nil,
-                                           condition.second_signal_networks.red, condition.second_signal_networks.green)
+      draw_functions.draw_signal_id_sprite(player, entity, condition.second_signal, second_signal_target, 0.45, nil, condition.second_signal_networks.red,
+                                           condition.second_signal_networks.green)
     else
       draw_functions.draw_signal_constant(player, entity, condition.constant, second_signal_target)
     end
-    draw_functions.draw_text_sprite(player, entity, condition.comparator, op_target)
   end
   local output = control.get_output(1)
   if output and output.signal then
     local text
     local draw_red, draw_green
     if not output.copy_count_from_input then
-      text = {right_bottom = "1"}
+      text = {right_bottom = util.localise_number(output.constant)}
     else
       draw_red = output.networks.red
       draw_green = output.networks.green
     end
-    draw_functions.draw_signal_id_sprite(player, entity, output.signal, output_signal_target, 0.45, text, draw_red,
-                                         draw_green)
+    draw_functions.draw_signal_id_sprite(player, entity, output.signal, output_signal_target, 0.45, text, draw_red, draw_green)
   end
 end
 
@@ -572,6 +584,7 @@ local function draw_selector_combinator_info(player, entity)
     draw_functions.draw_text_sprite(player, entity, "]", right_target, 1, nil, false, nil, "right")
   end
 end
+
 local function draw_constant_combinator_info(player, entity)
   local control = entity.get_control_behavior()
   local signals = {}
@@ -583,37 +596,31 @@ local function draw_constant_combinator_info(player, entity)
         local quality_name = signal.value.quality and signal.value.quality or ""
         local id = signal.value.name .. signal.value.type .. quality_name
         if signals[id] then
-          signals[id].amount = signals[id].amount + signal.min
+          signals[id].count = signals[id].count + signal.min
         else
           num_items = num_items + 1
-          contents[num_items] = {signal = signal.value, key = id}
-          signals[id] = {signal = signal.value, amount = signal.min or 0}
+          contents[num_items] = {name = signal.value.name, type = signal.value.type, quality = signal.value.quality, key = id}
+          signals[id] = {signal = signal.value, count = signal.min or 0}
         end
       end
     end
   end
-  if num_items == 0 then return end
-  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
-  if not scale then return end
-  local center = util.box_center(entity.selection_box)
-  for index, item in pairs(contents) do
-    local text = {right_bottom = util.localise_number(signals[item.key].amount)}
-    local signal_type = item.signal.type
+  util.sort_inventory(contents)
+  local sprites = {}
+  for _, signal in pairs(contents) do
+    local sprite_info = {}
+    local signal_type = signal.type
     if signal_type == "virtual" then
       signal_type = "virtual-signal"
     end
-    local sprite = signal_type .. "." .. item.signal.name
-    local target = draw_functions.determine_sprite_position(
-            entity, center, index, items_per_row, items_per_column, scale / 0.7, false
-    )
-    if target then
-      local quality
-      if item.signal.quality then
-        quality = prototypes.quality[item.signal.quality]
-      end
-      draw_functions.draw_sprite(player, entity, sprite, target, scale, text, quality)
+    sprite_info.sprite = signal_type .. "." .. signal.name
+    sprite_info.text = {right_bottom = util.localise_number(signals[signal.key].count)}
+    if signal.quality then
+      sprite_info.quality_prototype = prototypes.quality[signal.quality]
     end
+    table.insert(sprites, sprite_info)
   end
+  draw_chest_like(player, entity, sprites)
 end
 
 local function _draw_splitter_arrows(player, entity, scale, input, left)
@@ -795,8 +802,12 @@ local function draw_mineable_info(player, entity)
     local target = draw_functions.determine_sprite_position(
             entity, center, index, items_per_row, items_per_column, scale / 0.8, false
     )
-    local sprite = product.type .. "." .. product.name
-    draw_functions.draw_sprite(player, entity, sprite, target, scale, text, entity.quality)
+    local sprite_info = {
+      sprite = product.type .. "." .. product.name,
+      text   = text,
+      -- quality = product.quality, -- products can't have quality
+    }
+    draw_functions.draw_sprite(player, entity, sprite_info, target, scale)
   end
 end
 
@@ -878,7 +889,7 @@ local function draw_fluid_turret_info(player, entity, item_requests)
   draw_consuming_turret_info(player, entity, item_requests, sprites)
 end
 
-local function inventory_alt_info(inventory_define)
+local function inventory_alt_info(inventory_define, use_orientation)
   local function draw(player, entity, item_requests)
     local contents = {}
     local inventory = entity.get_inventory(inventory_define)
@@ -886,7 +897,7 @@ local function inventory_alt_info(inventory_define)
       contents = inventory.get_contents()
       util.sort_inventory(contents)
     end
-    draw_inventory_contents(player, entity, inventory_define, contents, item_requests)
+    draw_inventory_contents(player, entity, inventory_define, contents, item_requests, use_orientation)
   end
   return draw
 end
@@ -910,7 +921,7 @@ local alt_functions_per_type = {
   ["rocket-silo"]              = draw_rocket_silo_info,
   ["car"]                      = inventory_alt_info(defines.inventory.car_trunk),
   ["locomotive"]               = inventory_alt_info(defines.inventory.fuel),
-  ["cargo-wagon"]              = inventory_alt_info(defines.inventory.cargo_wagon),
+  ["cargo-wagon"]              = inventory_alt_info(defines.inventory.cargo_wagon, true),
   ["beacon"]                   = draw_beacon_info,
   ["mining-drill"]             = draw_mining_drill_info,
   ["artillery-wagon"]          = inventory_alt_info(defines.inventory.artillery_wagon_ammo),

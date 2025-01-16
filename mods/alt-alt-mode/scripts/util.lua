@@ -16,13 +16,24 @@ local function get_target_offset(index, shift, x_scale, y_scale, num_columns, nu
   return {x = x, y = y}
 end
 
+local function get_order(str, proto_type)
+  if proto_type then
+    local prototype = prototypes[proto_type][str]
+    return prototype.group.order .. "-" .. prototype.subgroup.order .. "-" .. prototype.order
+  end
+  for _, type in pairs({"item", "fluid", "entity", "virtual_signal", "recipe", "technology"}) do
+    if prototypes[type][str] then
+      local prototype = prototypes[type][str]
+      return prototype.group.order .. "-" .. prototype.subgroup.order .. "-" .. prototype.order
+    end
+  end
+end
+
 local function sort_inventory(inventory_contents)
   table.sort(inventory_contents, function(s1, s2)
     if s1.count == s2.count then
-      local prototype1 = prototypes.item[s1.name]
-      local order1 = prototype1.group.order .. prototype1.subgroup.order .. prototype1.order
-      local prototype2 = prototypes.item[s2.name]
-      local order2 = prototype2.group.order .. prototype2.subgroup.order .. prototype2.order
+      local order1 = get_order(s1.name, s1.type)
+      local order2 = get_order(s2.name, s1.type)
       if order1 == order2 then
         return prototypes.quality[s1.quality].order < prototypes.quality[s2.quality].order
       end
@@ -186,3 +197,4 @@ return {
   compare_versions              = compare_versions,
   sort_inventory                = sort_inventory,
 }
+-- "alt-alt-entity-info-white-background"

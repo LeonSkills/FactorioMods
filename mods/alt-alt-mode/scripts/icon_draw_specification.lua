@@ -16,7 +16,7 @@ return {
     scale = 0.7
   },
   ["stone-furnace"]               = {
-    scale = 0.66000000000000005,
+    scale = 0.66,
     shift = {
       0,
       -0.1
@@ -379,9 +379,19 @@ return {
     scale_for_many = 1.5,
     shift          = {0, 0.7},
   },
-  ["mining-drill"]            = {
-    scale  = 1,
+  ["mining-drill"]                = {
+    scale          = 1,
     scale_for_many = 1,
-    shift = {0, 0},
+    shift          = {0, 0},
+  },
+  ["agricultural-tower"]          = {
+    scale          = 2,
+    scale_for_many = 2,
+    shift          = {0, 0},
+  },
+  ["cargo-wagon"]                 = {
+    scale          = 1.5,
+    scale_for_many = 2.5,
+    shift          = {0, 0.3},
   }
 }

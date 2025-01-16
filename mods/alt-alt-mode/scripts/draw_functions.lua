@@ -255,16 +255,21 @@ end
 
 local function draw_signal_id_sprite(player, entity, signal, target, scale, text, on_red, on_green)
   if not target then return end
-  local quality
-  if signal.quality then
+  local quality = signal.quality
+  if type(signal.quality) == "string" then
     quality = prototypes.quality[signal.quality]
   end
   local signal_type = signal.type or "item"
   if signal_type == "virtual" then
     signal_type = "virtual-signal"
   end
-  local signal_sprite = signal_type .. "." .. signal.name
-  draw_sprite(player, entity, signal_sprite, target, scale, text, quality, false)
+  local signal_sprite = {
+    sprite = signal_type .. "." .. signal.name,
+    text = text,
+    quality_prototype = quality,
+    background_type = "normal",
+  }
+  draw_sprite(player, entity, signal_sprite, target, scale)
   if on_red and not on_green then
     draw_signal_wire_colour_indicator(player, entity, target, scale, {1, 0, 0})
   end

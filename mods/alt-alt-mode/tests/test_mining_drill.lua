@@ -1,5 +1,5 @@
 local entity_logic = require("__alt-alt-mode__/scripts/entity_logic")
-local util_tests = require("__alt-alt-mode__/tests/util_tests")
+local test = require("__alt-alt-mode__/tests/util_tests")
 local tests = {}
 for _, blacklist in pairs({true, false}) do
   tests["test_mining_drill-blacklist=" .. tostring(blacklist)] = function(player)
@@ -12,27 +12,27 @@ for _, blacklist in pairs({true, false}) do
     local sprites = storage[player.index]
     assert(#sprites == blacklist and 8 or 6, #sprites)
     local bg = sprites[1]
-    assert(bg.sprite == "alt-alt-entity-info-white-background", bg.sprite)
-    util_tests.assert_equal_array(bg.color, prototypes.quality["epic"].color, serpent.line(bg.color))
+    assert(bg.sprite == test.bg_sprite, bg.sprite)
+    test.assert_equal_array(bg.color, prototypes.quality.epic.color, serpent.line(bg.color))
     local module = sprites[2]
     assert(module.sprite == "item.productivity-module", module.sprite)
-    util_tests.assert_equal_position(module.target.offset, {x = -0.55, y = 0.7}, serpent.line(module.target.offset))
+    test.assert_equal_position(module.target.offset, {x = -0.55, y = 0.7}, serpent.line(module.target.offset))
     assert(module.x_scale == 0.5, module.x_scale)
     assert(module.y_scale == 0.5, module.y_scale)
     local bg1 = sprites[3]
-    assert(bg1.sprite == "alt-alt-entity-info-white-background", bg1.sprite)
+    assert(bg1.sprite == test.bg_sprite, bg1.sprite)
     local filter1 = sprites[4]
     assert(filter1.sprite == "item.iron-ore", filter1.sprite)
     assert(filter1.x_scale == 0.45, filter1.x_scale)
     assert(filter1.y_scale == 0.45, filter1.y_scale)
-    util_tests.assert_equal_position(filter1.target.offset, {x = -0.2475, y = 0.0}, serpent.line(filter1.target.offset))
+    test.assert_equal_position(filter1.target.offset, {x = -0.2475, y = 0.0}, serpent.line(filter1.target.offset))
     local bg2 = sprites[blacklist and 6 or 5]
-    assert(bg2.sprite == "alt-alt-entity-info-white-background", bg2.sprite)
+    assert(bg2.sprite == test.bg_sprite, bg2.sprite)
     local filter2 = sprites[blacklist and 7 or 6]
     assert(filter2.sprite == "item.copper-ore", filter2.sprite)
     assert(filter2.x_scale == 0.45, filter2.x_scale)
     assert(filter2.y_scale == 0.45, filter2.y_scale)
-    util_tests.assert_equal_position(filter2.target.offset, {x = 0.2475, y = 0.0}, serpent.line(filter2.target.offset))
+    test.assert_equal_position(filter2.target.offset, {x = 0.2475, y = 0.0}, serpent.line(filter2.target.offset))
     if blacklist then
       local blacklist1 = sprites[5]
       local blacklist2 = sprites[8]
@@ -58,27 +58,27 @@ for _, blacklist in pairs({true, false}) do
     local sprites = storage[player.index]
     assert(#sprites == blacklist and 8 or 6, #sprites)
     local bg = sprites[1]
-    assert(bg.sprite == "alt-alt-entity-info-white-background", bg.sprite)
-    util_tests.assert_equal_array(bg.color, prototypes.quality["epic"].color, serpent.line(bg.color))
+    assert(bg.sprite == test.bg_sprite, bg.sprite)
+    test.assert_equal_array(bg.color, prototypes.quality.epic.color, serpent.line(bg.color))
     local module = sprites[2]
     assert(module.sprite == "item.productivity-module", module.sprite)
-    util_tests.assert_equal_position(module.target.offset, {x = -0.275, y = 0.7}, serpent.line(module.target.offset))
+    test.assert_equal_position(module.target.offset, {x = -0.275, y = 0.7}, serpent.line(module.target.offset))
     assert(module.x_scale == 0.5, module.x_scale)
     assert(module.y_scale == 0.5, module.y_scale)
     local bg1 = sprites[3]
-    assert(bg1.sprite == "alt-alt-entity-info-white-background", bg1.sprite)
+    assert(bg1.sprite == test.bg_sprite, bg1.sprite)
     local filter1 = sprites[4]
     assert(filter1.sprite == "fluid.crude-oil", filter1.sprite)
     assert(filter1.x_scale == 0.45, filter1.x_scale)
     assert(filter1.y_scale == 0.45, filter1.y_scale)
-    util_tests.assert_equal_position(filter1.target.offset, {x = -0.2475, y = 0.0}, serpent.line(filter1.target.offset))
+    test.assert_equal_position(filter1.target.offset, {x = -0.2475, y = 0.0}, serpent.line(filter1.target.offset))
     local bg2 = sprites[blacklist and 6 or 5]
-    assert(bg2.sprite == "alt-alt-entity-info-white-background", bg2.sprite)
+    assert(bg2.sprite == test.bg_sprite, bg2.sprite)
     local filter2 = sprites[blacklist and 7 or 6]
     assert(filter2.sprite == "fluid.lithium-brine", filter2.sprite)
     assert(filter2.x_scale == 0.45, filter2.x_scale)
     assert(filter2.y_scale == 0.45, filter2.y_scale)
-    util_tests.assert_equal_position(filter2.target.offset, {x = 0.2475, y = 0.0}, serpent.line(filter2.target.offset))
+    test.assert_equal_position(filter2.target.offset, {x = 0.2475, y = 0.0}, serpent.line(filter2.target.offset))
     if blacklist then
       local blacklist1 = sprites[5]
       local blacklist2 = sprites[8]

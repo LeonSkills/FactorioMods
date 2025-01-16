@@ -26,6 +26,13 @@ add_tests(require("__alt-alt-mode__/tests/test_mining_drill.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_special_buildings.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_fluid_containers.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_pump.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_accumulator.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_electric_pole.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_agricultural_tower.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_constant_combinator.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_arithmetic_combinator.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_decider_combinator.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_mineables.lua"))
 
 local function run_tests(player)
   clean_sprites(player, false)
@@ -34,13 +41,15 @@ local function run_tests(player)
   for test_name, func in pairs(all_tests) do
     local success, ret = xpcall(func, debug.traceback, player)
     if success then
-      tested_entity_types[ret.type] = true
-      ret.destroy()
+      if ret then
+        tested_entity_types[ret.type] = true
+        ret.destroy()
+      end
     else
       error("Test '" .. test_name .. "' failed. " .. ret)
     end
     num_tests = num_tests + 1
-    clean_sprites(player, true)
+    clean_sprites(player, false)
   end
   player.print("Ran all " .. num_tests .. " tests successfully")
   local not_tested = {}
@@ -50,7 +59,7 @@ local function run_tests(player)
     end
   end
   if #not_tested > 0 then
-    game.print("No test for types " .. serpent.line(not_tested))
+    game.print("No test for "..  # not_tested.. " types: " .. serpent.line(not_tested))
   else
     game.print("All types tested!")
   end
