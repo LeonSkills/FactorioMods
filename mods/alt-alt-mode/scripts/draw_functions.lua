@@ -264,10 +264,10 @@ local function draw_signal_id_sprite(player, entity, signal, target, scale, text
     signal_type = "virtual-signal"
   end
   local signal_sprite = {
-    sprite = signal_type .. "." .. signal.name,
-    text = text,
+    sprite            = signal_type .. "." .. signal.name,
+    text              = text,
     quality_prototype = quality,
-    background_type = "normal",
+    background_type   = "normal",
   }
   draw_sprite(player, entity, signal_sprite, target, scale)
   if on_red and not on_green then
@@ -296,4 +296,5 @@ return {
   draw_signal_constant      = draw_signal_constant,
   draw_request_background   = draw_request_background,
   draw_blacklist_filter     = draw_blacklist_filter,
+  default_render_layer      = default_render_layer,
 }

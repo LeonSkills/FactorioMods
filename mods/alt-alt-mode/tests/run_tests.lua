@@ -26,6 +26,7 @@ add_tests(require("__alt-alt-mode__/tests/test_mining_drill.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_special_buildings.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_fluid_containers.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_pump.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_storage_tank.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_accumulator.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_electric_pole.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_agricultural_tower.lua"))
@@ -34,6 +35,7 @@ add_tests(require("__alt-alt-mode__/tests/test_arithmetic_combinator.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_decider_combinator.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_mineables.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_cargo_wagon.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_splitter.lua"))
 
 local function run_tests(player)
   clean_sprites(player, false)
@@ -43,7 +45,8 @@ local function run_tests(player)
     local success, ret = xpcall(func, debug.traceback, player)
     if success then
       if ret then
-        if type(ret) == "table" then  -- testing rolling stock
+        if type(ret) == "table" then
+          -- testing rolling stock
           tested_entity_types[ret[1].type] = true
           ret[1].destroy()
           for _, entity in pairs(ret[2]) do
@@ -55,6 +58,8 @@ local function run_tests(player)
         end
       end
     else
+      -- game.print("Test '" .. test_name .. "' failed. " .. ret)
+      -- return
       error("Test '" .. test_name .. "' failed. " .. ret)
     end
     num_tests = num_tests + 1
@@ -62,15 +67,19 @@ local function run_tests(player)
   end
   player.print("Ran all " .. num_tests .. " tests successfully")
   local not_tested = {}
+  local tested = {}
   for _, type in pairs(entity_logic.supported_types) do
-    if not tested_entity_types[type] then
+    if tested_entity_types[type] then
+      table.insert(tested, type)
+    else
       table.insert(not_tested, type)
     end
   end
+  player.print("Tested " .. #tested .. " types: " .. serpent.line(tested))
   if #not_tested > 0 then
-    game.print("No test for " .. #not_tested .. " types: " .. serpent.line(not_tested))
+    player.print("No test for " .. #not_tested .. " types: " .. serpent.line(not_tested))
   else
-    game.print("All types tested!")
+    player.print("All types tested!")
   end
 end
 

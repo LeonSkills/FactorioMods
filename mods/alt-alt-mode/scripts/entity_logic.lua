@@ -121,6 +121,24 @@ local function get_proxy_sprites(entity, item_requests)
   return sprites
 end
 
+
+local function get_module_like_inventory_sprites(inventory, text_if_1)
+  local sprites = {}
+  for index = 1, #inventory do
+    local icon_info = inventory[index]
+    if icon_info and icon_info.valid and icon_info.count > 0 then
+      local sprite_info = {}
+      sprite_info.sprite = "item." .. icon_info.name
+      sprite_info.quality_prototype = icon_info.quality
+      if icon_info.count > 1 or text_if_1 then
+        sprite_info.text = {right_bottom = util.localise_number(icon_info.count)}
+      end
+      sprites[index] = sprite_info
+    end
+  end
+  return sprites
+end
+
 local function draw_chest_like(player, entity, sprites)
   local num_items = #sprites
   if num_items == 0 then return end
@@ -132,11 +150,10 @@ local function draw_chest_like(player, entity, sprites)
       draw_functions.draw_sprite(player, entity, sprite_info, target, scale, render_layer)
     end
   end
-
 end
 
-local function draw_module_like(player, entity, contents, inventory_define)
-  local num_items = #contents
+local function draw_module_like(player, entity, sprites, num_slots, inventory_define)
+  local num_items = num_slots or #sprites
   if num_items == 0 then return end
   local max_icons_per_row, max_icon_rows, shift, scale, separation_multiplier, multi_row_initial_height_modifier = get_icons_positioning(entity, inventory_define)
   local num_columns = math.min(num_items, max_icons_per_row)
@@ -144,29 +161,14 @@ local function draw_module_like(player, entity, contents, inventory_define)
   if num_rows > 1 then
     shift = {shift[1], shift[2] + multi_row_initial_height_modifier}
   end
-  for index = 1, #contents do
-    local icon_info = contents[index]
-    if icon_info and icon_info.valid and icon_info.count > 0 then
-      local offset = util.get_target_offset(index, shift, scale, scale / 0.9, num_columns, num_rows, separation_multiplier)
-      local target = {entity = entity, offset = offset}
-      local sprite_info = {}
-      sprite_info.sprite = "item." .. icon_info.name
-      local quality = icon_info.quality
-      if type(quality) == "string" then
-        sprite_info.quality_prototype = prototypes[quality]
-      else
-        sprite_info.quality_prototype = quality
-      end
-      sprite_info.text = {}
-      if icon_info.count > 1 then
-        sprite_info.text = {right_bottom = util.localise_number(icon_info.count)}
-      end
-      draw_functions.draw_sprite(player, entity, sprite_info, target, scale)
-    end
+  for index, sprite_info in pairs(sprites) do
+    local offset = util.get_target_offset(index, shift, scale, scale / 0.9, num_columns, num_rows, separation_multiplier)
+    local target = {entity = entity, offset = offset}
+    draw_functions.draw_sprite(player, entity, sprite_info, target, scale)
   end
 end
 
-local function draw_inventory_contents(player, entity, inventory_define, contents, item_requests, use_orientation)
+local function draw_inventory_contents(player, entity, contents, item_requests, use_orientation)
   local proxy_sprites = get_proxy_sprites(entity, item_requests)
   if #contents == 0 then return end
   local sprites = {}
@@ -183,11 +185,19 @@ end
 
 local function draw_modules(player, entity, item_requests, inventory_define)
   local inventory = entity.get_module_inventory() or {}
-  draw_module_like(player, entity, inventory, inventory_define)
+  local sprites = get_module_like_inventory_sprites(inventory, false)
+  draw_module_like(player, entity, sprites, #inventory, inventory_define)
 end
 
 local function draw_beacon_info(player, entity, item_requests)
   draw_modules(player, entity, item_requests, defines.inventory.beacon_modules)
+end
+
+local function draw_lab_info(player, entity, item_requests)
+  draw_modules(player, entity, item_requests, defines.inventory.lab_modules)
+  local inventory = entity.get_inventory(defines.inventory.lab_input)
+  local sprites = get_module_like_inventory_sprites(inventory, true)
+  draw_module_like(player, entity, sprites, #inventory, defines.inventory.lab_input)
 end
 
 local function draw_cargo_wagon_info(player, entity, item_requests)
@@ -480,7 +490,7 @@ local function draw_agricultural_tower_info(player, entity, item_requests)
     contents = inventory.get_contents()
     util.sort_inventory(contents)
   end
-  draw_inventory_contents(player, entity, inventory, contents, item_requests)
+  draw_inventory_contents(player, entity, contents, item_requests)
 end
 
 local function draw_arithmetic_combinator_info(player, entity)
@@ -588,18 +598,18 @@ local function draw_selector_combinator_info(player, entity)
   elseif parameters.operation == "rocket-capacity" then
   elseif parameters.operation == "quality-filter" then
     local target = {entity = entity, offset = {x = 0, y = y_offset}}
-    local sprite
+    local sprite_info
     if parameters.quality_filter and parameters.quality_filter.quality then
-      sprite = "quality." .. parameters.quality_filter.quality
+      sprite_info = {sprite = "quality." .. parameters.quality_filter.quality}
       local left_target = {entity = entity, offset = {x = -x_offset, y = y_offset}}
       target.offset.x = x_offset
       draw_functions.draw_text_sprite(
               player, entity, parameters.quality_filter.comparator, left_target, 0.75, nil, 1, nil, "left"
       )
     else
-      sprite = "virtual-signal.signal-any-quality"
+      sprite_info = {sprite = "virtual-signal.signal-any-quality"}
     end
-    draw_functions.draw_sprite(player, entity, sprite, target, 0.45)
+    draw_functions.draw_sprite(player, entity, sprite_info, target, 0.45)
   elseif parameters.operation == "quality-transfer" then
     local left_target = {entity = entity, offset = {x = -x_offset, y = y_offset}}
     local right_target = {entity = entity, offset = {x = x_offset, y = y_offset}}
@@ -608,11 +618,11 @@ local function draw_selector_combinator_info(player, entity)
         draw_functions.draw_signal_id_sprite(player, entity, parameters.quality_source_signal, left_target, 0.45)
       end
     else
-      local sprite = "quality.normal"
+      local sprite_info = {sprite = "quality.normal"}
       if parameters.quality_source_static then
-        sprite = "quality." .. parameters.quality_source_static.name
+        sprite_info = {sprite = "quality." .. parameters.quality_source_static.name}
       end
-      draw_functions.draw_sprite(player, entity, sprite, left_target, 0.45)
+      draw_functions.draw_sprite(player, entity, sprite_info, left_target, 0.45)
     end
     if parameters.quality_destination_signal then
       local signal = parameters.quality_destination_signal
@@ -687,14 +697,16 @@ local function _draw_splitter_arrows(player, entity, scale, input, left)
   if not input and entity.splitter_filter then
     target.offset.y = 0
     util.rotate_around_point(offset, {x = 0, y = 0}, entity.orientation)
-    local main_sprite, text, quality
+    local sprite_info = {}
     if entity.splitter_filter.name then
-      main_sprite = "item." .. entity.splitter_filter.name
-      text, quality = get_item_filter_quality(entity.splitter_filter)
+      sprite_info.sprite = "item." .. entity.splitter_filter.name
+      local text, quality = get_item_filter_quality(entity.splitter_filter)
+      sprite_info.text = text
+      sprite_info.quality_prototype = quality
     else
-      main_sprite = "quality." .. entity.splitter_filter.quality
+      sprite_info.sprite = "quality." .. entity.splitter_filter.quality
     end
-    draw_functions.draw_sprite(player, entity, main_sprite, target, scale * 0.45, text, quality)
+    draw_functions.draw_sprite(player, entity, sprite_info, target, scale * 0.45)
   else
     util.rotate_around_point(offset, {x = 0, y = 0}, entity.orientation)
     local output_sprite = rendering.draw_sprite {
@@ -703,10 +715,10 @@ local function _draw_splitter_arrows(player, entity, scale, input, left)
       target       = target,
       orientation  = entity.orientation,
       surface      = entity.surface,
-      x_scale      = scale * 0.75,
-      y_scale      = scale * 0.75,
+      x_scale      = scale * 0.65,
+      y_scale      = scale * 0.65,
       time_to_live = settings.global["alt-alt-update-interval"].value + 30,
-      render_layer = "wires-above"
+      render_layer = draw_functions.default_render_layer
     }
     table.insert(storage[player.index], output_sprite)
   end
@@ -717,11 +729,11 @@ local function draw_splitter_info(player, entity)
   if entity.type == "lane-splitter" then
     scale = 0.5
   end
-  if entity.splitter_input_priority ~= "none" then
-    _draw_splitter_arrows(player, entity, scale, true, entity.splitter_input_priority == "left")
-  end
   if entity.splitter_output_priority ~= "none" then
     _draw_splitter_arrows(player, entity, scale, false, entity.splitter_output_priority == "left")
+  end
+  if entity.splitter_input_priority ~= "none" then
+    _draw_splitter_arrows(player, entity, scale, true, entity.splitter_input_priority == "left")
   end
 end
 
@@ -750,11 +762,7 @@ local function draw_crafting_machine_info(player, entity, item_requests)
   end
 end
 
-local function draw_lab_info(player, entity, item_requests)
-  draw_modules(player, entity, item_requests, defines.inventory.lab_modules)
-  local input_inventory = entity.get_inventory(defines.inventory.lab_input)
-  draw_module_like(player, entity, input_inventory, defines.inventory.lab_input)
-end
+
 
 local function draw_rocket_silo_info(player, entity, item_requests)
   draw_modules(player, entity, item_requests, defines.inventory.rocket_silo_modules)
@@ -764,7 +772,7 @@ local function draw_rocket_silo_info(player, entity, item_requests)
     contents = inventory.get_contents()
     util.sort_inventory(contents)
   end
-  draw_inventory_contents(player, entity, defines.inventory.rocket_silo_rocket, contents)
+  draw_inventory_contents(player, entity, contents)
 end
 
 local function draw_mining_drill_info(player, entity, item_requests)
@@ -891,7 +899,7 @@ local function draw_turret_info(player, entity, item_requests, use_direction)
     table.insert(sprites, {sprite = "entity." .. turret_target.name, index = i})
   end
   if #sprites > 0 then
-    draw_functions.draw_module_like(player, entity, sprites, 0.5, 2 / 5, use_direction)
+    draw_module_like(player, entity, sprites, nil, nil)
   end
 end
 
@@ -964,7 +972,7 @@ local function inventory_alt_info(inventory_define, use_orientation)
       contents = inventory.get_contents()
       util.sort_inventory(contents)
     end
-    draw_inventory_contents(player, entity, inventory_define, contents, item_requests, use_orientation)
+    draw_inventory_contents(player, entity, contents, item_requests, use_orientation)
   end
   return draw
 end
