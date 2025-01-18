@@ -4,6 +4,7 @@ Date: 2025-01-13
   Changes:
     - Attempted to get all alt-alt-mode icon scales and positions as close as possible to the vanilla alt mode counterpart
     - Entities that are not selectable will not show any icons
+    - Cars and tanks now show their fuel instead of cargo
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.4
 Date: 2025-01-12

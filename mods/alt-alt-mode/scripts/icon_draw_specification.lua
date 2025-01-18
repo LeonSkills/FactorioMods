@@ -379,6 +379,10 @@ return {
     scale_for_many = 1.5,
     shift          = {0, 0.7},
   },
+  ["asteroid-collector"]          = {
+    scale          = 1,
+    scale_for_many = 1.5,
+  },
   ["mining-drill"]                = {
     scale          = 1,
     scale_for_many = 1,

@@ -36,12 +36,14 @@ add_tests(require("__alt-alt-mode__/tests/test_decider_combinator.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_mineables.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_cargo_wagon.lua"))
 add_tests(require("__alt-alt-mode__/tests/test_splitter.lua"))
+add_tests(require("__alt-alt-mode__/tests/test_lane_splitter.lua"))
 
 local function run_tests(player)
   clean_sprites(player, false)
   local num_tests = 0
   local tested_entity_types = {}
   for test_name, func in pairs(all_tests) do
+    print("Testing '" .. test_name .. "'")
     local success, ret = xpcall(func, debug.traceback, player)
     if success then
       if ret then

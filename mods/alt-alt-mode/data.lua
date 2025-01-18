@@ -61,7 +61,6 @@ for i = 0, 4 do
     {
       type                    = "simple-entity-with-owner",
       name                    = "alt-alt-invisible-selectable-" .. i,
-      force_condition         = "same",
       render_layer            = "remnants",
       flags                   = {"not-on-map", "not-deconstructable", "not-blueprintable"},
       hidden                  = true,

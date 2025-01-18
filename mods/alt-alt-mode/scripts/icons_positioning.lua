@@ -122,25 +122,29 @@ return {
     },
   },
   -- custom
-  ["roboport"]              = {
-    [defines.inventory.roboport_robot] = {
-      inventory_index       = defines.inventory.roboport_robot,
-      max_icons_per_row     = 3,
-      max_icon_rows         = 3,
-      shift                 = {0, 0},
-      separation_multiplier = 1.1,
-      scale                 = 0.5,
-    }
+  ["ammo-turret"]            = {
+    ["turret"] = {
+      max_icons_per_row = 4,
+      scale=0.45,
+    },
   },
-  -- ["big-mining-drill"]      = {
-  --   [2] = {
-  --     inventory_index       = 2,
-  --     max_icons_per_row     = 1,
-  --     separation_multiplier = 4,
-  --     shift                 = {
-  --       0,
-  --       0.95
-  --     }
-  --   }
-  -- }
+  ["electric-turret"]            = {
+    ["turret"] = {
+      max_icons_per_row = 4,
+      scale=0.45,
+    },
+  },
+  ["electric-turret"]            = {
+    ["turret"] = {
+      max_icons_per_row = 4,
+      scale=0.45,
+    },
+  },
+  ["fluid-turret"]            = {
+    ["turret"] = {
+      max_icons_per_row = 4,
+      scale=0.45,
+    },
+  },
 }
+

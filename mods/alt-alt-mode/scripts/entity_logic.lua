@@ -6,6 +6,7 @@ local icon_draw_specification = require("__alt-alt-mode__/scripts/icon_draw_spec
 local icons_positioning = require("__alt-alt-mode__/scripts/icons_positioning")
 
 local function get_draw_specification(entity)
+  -- module like
   -- see https://forums.factorio.com/viewtopic.php?f=28&t=125562&p=658621
   local spec = icon_draw_specification[entity.name] or icon_draw_specification[entity.type]
   if not spec then
@@ -39,9 +40,13 @@ local function get_draw_specification(entity)
 end
 
 local function get_icons_positioning(entity, inventory_index)
+  -- chest like
   local spec = {}
   if icons_positioning[entity.name] then
     spec = icons_positioning[entity.name][inventory_index] or {}
+  end
+  if #spec == 0 and icons_positioning[entity.type] then
+    spec = icons_positioning[entity.type][inventory_index] or {}
   end
   local box = entity.prototype.selection_box
   local width = box.right_bottom.x - box.left_top.x
@@ -120,7 +125,6 @@ local function get_proxy_sprites(entity, item_requests)
   end
   return sprites
 end
-
 
 local function get_module_like_inventory_sprites(inventory, text_if_1)
   local sprites = {}
@@ -362,7 +366,7 @@ local function get_and_draw_filters(player, entity, filter_mode, box)
     if filter_mode == "blacklist" or filter_mode == "none" then
       return
     end
-    draw_functions.draw_blacklist_filter(player, entity, entity, 0.9)
+    draw_functions.draw_blacklist_filter(player, entity, entity, 0.45)
     return
   end
   draw_filters(player, entity, filters, filter_mode == "blacklist", box)
@@ -571,7 +575,7 @@ local function draw_decider_combinator_info(player, entity)
     local text
     local draw_red, draw_green
     if not output.copy_count_from_input then
-      text = {right_bottom = util.localise_number(output.constant)}
+      text = {right_bottom = util.localise_number(output.constant or 1)}
     else
       draw_red = output.networks.red
       draw_green = output.networks.green
@@ -684,15 +688,16 @@ end
 local function _draw_splitter_arrows(player, entity, scale, input, left)
   local arrow_sprite = "alt-alt-indication-arrow"
   local offset
+  local width = math.ceil(entity.prototype.selection_box.right_bottom.x - entity.prototype.selection_box.left_top.x)
   local y_offset = -1
-  local x_offset = 1
+  local x_offset = width / 2
   if input then
     y_offset = 1
   end
   if left then
-    x_offset = -1
+    x_offset = -width / 2
   end
-  offset = {x = 0.5 * scale * x_offset, y = 0.25 * scale * y_offset}
+  offset = {x = 0.5 * x_offset, y = 0.25 * y_offset}
   local target = {entity = entity, offset = offset}
   if not input and entity.splitter_filter then
     target.offset.y = 0
@@ -727,7 +732,7 @@ end
 local function draw_splitter_info(player, entity)
   local scale = 1
   if entity.type == "lane-splitter" then
-    scale = 0.5
+    scale = 0.7
   end
   if entity.splitter_output_priority ~= "none" then
     _draw_splitter_arrows(player, entity, scale, false, entity.splitter_output_priority == "left")
@@ -761,8 +766,6 @@ local function draw_crafting_machine_info(player, entity, item_requests)
     end
   end
 end
-
-
 
 local function draw_rocket_silo_info(player, entity, item_requests)
   draw_modules(player, entity, item_requests, defines.inventory.rocket_silo_modules)
@@ -806,19 +809,16 @@ local function draw_radar_info(player, entity)
   if not signals or #signals == 0 then
     return
   end
-  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, #signals)
-  if not scale then
-    return
-  end
-  local center = util.box_center(entity.selection_box)
-  for i, signal_data in pairs(signals) do
-    local signal = signal_data.signal
-    local text = {right_bottom = util.localise_number(signal.count)}
-    local target = draw_functions.determine_sprite_position(
-            entity, center, i, items_per_row, items_per_column, scale / 0.8, false
-    )
-    draw_functions.draw_signal_id_sprite(player, entity, signal.signal, target, scale, text, signal_data.use_red,
-                                         signal_data.use_green)
+  local shift, scale, num_columns, num_rows, separation_multiplier, render_layer = get_icons_positioning_chest_like(entity, #signals)
+  for index, signal_data in pairs(signals) do
+    local offset = util.get_target_offset(index, shift, scale, scale, num_columns, num_rows, separation_multiplier, true)
+    if offset then
+      local target = {entity = entity, offset = offset}
+      local signal = signal_data.signal
+      local text = {right_bottom = util.localise_number(signal.count)}
+      draw_functions.draw_signal_id_sprite(player, entity, signal.signal, target, scale, text, signal_data.use_red,
+                                           signal_data.use_green)
+    end
   end
 end
 
@@ -884,7 +884,7 @@ end
 local function draw_turret_info(player, entity, item_requests, use_direction)
   local targets = {}
   local index = 0
-  while true do
+  while #targets < 4 do
     index = index + 1
     local status, target = pcall(entity.get_priority_target, index)
     if not status then
@@ -899,7 +899,7 @@ local function draw_turret_info(player, entity, item_requests, use_direction)
     table.insert(sprites, {sprite = "entity." .. turret_target.name, index = i})
   end
   if #sprites > 0 then
-    draw_module_like(player, entity, sprites, nil, nil)
+    draw_module_like(player, entity, sprites, nil, "turret")
   end
 end
 
@@ -910,7 +910,6 @@ local function draw_consuming_turret_info(player, entity, item_requests, sprites
   end
   local selection_box = prototypes.entity[name].selection_box
   local use_direction = selection_box.left_top.x ~= selection_box.left_top.y
-  draw_turret_info(player, entity, item_requests, use_direction)
   local box = {left_top = selection_box.left_top, right_bottom = {x = selection_box.right_bottom.x, y = 0}}
   local items_per_row, items_per_column, scale = get_box_parameters(box, #sprites)
   if not scale then
@@ -936,6 +935,7 @@ local function draw_consuming_turret_info(player, entity, item_requests, sprites
 end
 
 local function draw_ammo_turret_info(player, entity, item_requests)
+  draw_turret_info(player, entity, item_requests)
   local inventory = entity.get_inventory(defines.inventory.turret_ammo)
   local contents = {}
   if inventory and inventory.valid then
@@ -943,25 +943,29 @@ local function draw_ammo_turret_info(player, entity, item_requests)
   end
   local sprites = get_proxy_sprites(entity, item_requests)
   for _, item in pairs(contents) do
-    local sprite = "item." .. item.name
-    local count = item.count
-    local quality = prototypes.quality[item.quality]
-    table.insert(sprites, {sprite = sprite, count = count, quality = quality})
+    local sprite_info = {}
+    sprite_info.sprite = "item." .. item.name
+    sprite_info.text = {right_bottom = util.localise_number(item.count)}
+    sprite_info.quality_prototype = prototypes.quality[item.quality]
+    table.insert(sprites, sprite_info)
   end
-  draw_consuming_turret_info(player, entity, item_requests, sprites)
+  draw_chest_like(player, entity, sprites)
 end
 
 local function draw_fluid_turret_info(player, entity, item_requests)
+  draw_turret_info(player, entity, item_requests)
   local contents = entity.get_fluid_contents()
   if not contents then
     return
   end
   local sprites = {}
   for fluid, count in pairs(contents) do
-    local sprite = "fluid." .. fluid
-    table.insert(sprites, {sprite = sprite, count = count})
+    local sprite_info = {}
+    sprite_info.sprite = "fluid." .. fluid
+    sprite_info.text = {right_bottom = util.localise_number(count)}
+    table.insert(sprites, sprite_info)
   end
-  draw_consuming_turret_info(player, entity, item_requests, sprites)
+  draw_chest_like(player, entity, sprites)
 end
 
 local function inventory_alt_info(inventory_define, use_orientation)
@@ -994,7 +998,7 @@ local alt_functions_per_type = {
   ["roboport"]                 = inventory_alt_info(defines.inventory.roboport_robot),
   ["lab"]                      = draw_lab_info,
   ["rocket-silo"]              = draw_rocket_silo_info,
-  ["car"]                      = inventory_alt_info(defines.inventory.car_trunk),
+  ["car"]                      = inventory_alt_info(defines.inventory.fuel),
   ["locomotive"]               = inventory_alt_info(defines.inventory.fuel),
   ["cargo-wagon"]              = draw_cargo_wagon_info,
   ["beacon"]                   = draw_beacon_info,
