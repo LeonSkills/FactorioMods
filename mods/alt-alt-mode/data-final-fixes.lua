@@ -11,9 +11,6 @@ for type, _ in pairs(data.raw) do
         table.insert(new_icon_draw, entity.name)
         print('["' .. entity.name .. '"] = ' .. serpent.block(entity.icon_draw_specification) .. ",")
       else
-        print(entity.name)
-        print(serpent.line(entity.icon_draw_specification))
-        print(serpent.line(icon_draw_specification[entity.name]))
         assert(serpent.line(entity.icon_draw_specification) == serpent.line(icon_draw_specification[entity.name]))
       end
     end
@@ -41,14 +38,6 @@ if #new_icon_draw > 0 or #new_icon_positioning > 0 then
   error()
 end
 
--- data.raw["mining-drill"]["big-mining-drill"].icons_positioning = {
---   {
---     inventory_index       = 2,
---     max_icons_per_row     = 1,
---     separation_multiplier = 4,
---     shift                 = {
---       0,
---       0.95
---     }}
--- }
-
+for _, connection in pairs(data.raw.generator["steam-engine"].fluid_box.pipe_connections) do
+  print(connection.flow_direction)
+end

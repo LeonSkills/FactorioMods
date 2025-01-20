@@ -51,7 +51,27 @@ data:extend {
     height   = 92,
     scale    = 0.4,
     flags    = {"icon"},
-  }
+  },
+  {
+    type     = "sprite",
+    name     = "alt-alt-fluid-indication-arrow",
+    filename = "__core__/graphics/arrows/fluid-indication-arrow.png",
+    priority = "extra-high-no-scale",
+    flags    = {"icon"},
+    width    = 48,
+    height   = 48,
+    scale    = 0.5
+  },
+  {
+    type     = "sprite",
+    name     = "alt-alt-fluid-indication-arrow-both-ways",
+    filename = "__core__/graphics/arrows/fluid-indication-arrow-both-ways.png",
+    priority = "extra-high-no-scale",
+    flags    = {"icon"},
+    width    = 48,
+    height   = 48,
+    scale    = 0.5
+  },
 }
 
 -- Invisible entities

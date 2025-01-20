@@ -1,6 +1,6 @@
 -- This file is required because of https://forums.factorio.com/viewtopic.php?f=28&t=125562&p=658621
 return {
-  ["electric-furnace"]      = {
+  ["electric-furnace"]          = {
     [4] = {
       inventory_index = 4,
       shift           = {
@@ -9,7 +9,7 @@ return {
       }
     },
   },
-  ["recycler"]              = {
+  ["recycler"]                  = {
     [4] = {
       inventory_index = 4,
       shift           = {
@@ -18,7 +18,7 @@ return {
       }
     },
   },
-  ["crusher"]               = {
+  ["crusher"]                   = {
     [4] = {
       inventory_index = 4,
       shift           = {
@@ -27,7 +27,7 @@ return {
       }
     },
   },
-  ["foundry"]               = {
+  ["foundry"]                   = {
     [4] = {
       inventory_index = 4,
       shift           = {
@@ -36,7 +36,7 @@ return {
       }
     },
   },
-  ["electromagnetic-plant"] = {
+  ["electromagnetic-plant"]     = {
     [4] = {
       inventory_index = 4,
       shift           = {
@@ -45,7 +45,7 @@ return {
       }
     },
   },
-  ["cryogenic-plant"]       = {
+  ["cryogenic-plant"]           = {
     [4] = {
       inventory_index   = 4,
       max_icons_per_row = 4,
@@ -55,7 +55,7 @@ return {
       }
     },
   },
-  ["lab"]                   = {
+  ["lab"]                       = {
     [3] = {
       inventory_index = 3,
       shift           = {
@@ -73,7 +73,7 @@ return {
       }
     },
   },
-  ["biolab"]                = {
+  ["biolab"]                    = {
     [3] = {
       inventory_index = 3,
       shift           = {
@@ -91,7 +91,7 @@ return {
       }
     },
   },
-  ["rocket-silo"]           = {
+  ["rocket-silo"]               = {
     [4] = {
       inventory_index = 4,
       shift           = {
@@ -100,7 +100,7 @@ return {
       }
     },
   },
-  ["beacon"]                = {
+  ["beacon"]                    = {
     [1] = {
       inventory_index                   = 1,
       max_icons_per_row                 = 2,
@@ -111,7 +111,7 @@ return {
       }
     },
   },
-  ["locomotive"]            = {
+  ["locomotive"]                = {
     [1] = {
       inventory_index   = 1,
       max_icons_per_row = 3,
@@ -121,29 +121,81 @@ return {
       }
     },
   },
+  -- creative-mod
+  ["creative-mod_creative-lab"] = {
+    [3] = {
+      inventory_index = 3,
+      shift           = {
+        0,
+        0.9
+      }
+    },
+    [2] = {
+      inventory_index       = 2,
+      max_icons_per_row     = 4,
+      separation_multiplier = 0.90909090909090899,
+      shift                 = {
+        0,
+        0
+      }
+    },
+  },
+  ["creative-mod_void-lab"]     = {
+    [3] = {
+      inventory_index = 3,
+      shift           = {
+        0,
+        0.9
+      }
+    },
+    [2] = {
+      inventory_index       = 2,
+      max_icons_per_row     = 4,
+      separation_multiplier = 0.90909090909090899,
+      shift                 = {
+        0,
+        0
+      }
+    },
+  },
   -- custom
-  ["ammo-turret"]            = {
+  ["ammo-turret"]               = {
     ["turret"] = {
       max_icons_per_row = 4,
-      scale=0.45,
+      scale             = 0.45,
     },
   },
-  ["electric-turret"]            = {
+  ["electric-turret"]           = {
     ["turret"] = {
       max_icons_per_row = 4,
-      scale=0.45,
+      scale             = 0.45,
     },
   },
-  ["electric-turret"]            = {
+  ["electric-turret"]           = {
     ["turret"] = {
       max_icons_per_row = 4,
-      scale=0.45,
+      scale             = 0.45,
     },
   },
-  ["fluid-turret"]            = {
+  ["fluid-turret"]              = {
     ["turret"] = {
       max_icons_per_row = 4,
-      scale=0.45,
+      scale             = 0.45,
+    },
+  },
+  ["radar"]                     = {
+    ["radar"] = {
+      max_icons_per_row = 4,
+      max_icon_rows     = 4,
+      scale             = 0.45,
+      shift             = {0, 0},
+    },
+  },
+  ["asteroid-collector"]                     = {
+    ["filter"] = {
+      max_icons_per_row = 6,
+      max_icon_rows     = 1,
+      scale             = 0.45,
     },
   },
 }

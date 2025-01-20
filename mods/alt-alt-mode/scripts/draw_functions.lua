@@ -150,6 +150,9 @@ end
 local function draw_sub_text(player, entity, text, target, text_scale, x_offset, y_offset, alignment, vertical_alignment,
                              render_layer)
   if not text then return end
+  -- if not target then return end
+  -- if not target.offset then return end
+
   render_layer = render_layer or default_render_layer
   local offset_x = x_offset + (target.offset.x or target.offset[1])
   local offset_y = y_offset + (target.offset.y or target.offset[2])
@@ -170,10 +173,11 @@ local function draw_sub_text(player, entity, text, target, text_scale, x_offset,
 end
 
 local function draw_sprite(player, entity, sprite_info, target, scale, render_layer)
-  -- sprite_info contains: sprite, text, background_type, quality_prototype and blacklist
+  -- sprite_info contains: sprite, text, orientation, background_type, quality_prototype and blacklist
   if not target then return end
   if not scale then return end
   render_layer = render_layer or default_render_layer
+  local orientation = sprite_info.orientation or 0
   local tint = {0, 0, 0}
   local quality_prototype = sprite_info.quality_prototype
   local text = sprite_info.text
@@ -192,6 +196,7 @@ local function draw_sprite(player, entity, sprite_info, target, scale, render_la
   if sprite_info.sprite then
     local sprite_main = rendering.draw_sprite {
       sprite       = sprite_info.sprite,
+      orientation   = orientation,
       players      = {player},
       target       = target,
       surface      = entity.surface,
@@ -220,7 +225,9 @@ local function draw_sprite(player, entity, sprite_info, target, scale, render_la
     else
       sprite = "virtual-signal.signal-any-quality"
     end
-    local target_quality = {entity = entity, offset = {x = target.offset.x - scale * 0.25, y = target.offset.y + scale * 0.25}}
+    local x_offset = (target.offset.x or target.offset[1]) - scale * 0.25
+    local y_offset = (target.offset.y or target.offset[2]) + scale * 0.25
+    local target_quality = {entity = entity, offset = {x = x_offset, y = y_offset}}
     local quality_sprite = rendering.draw_sprite {
       sprite       = sprite,
       players      = {player},

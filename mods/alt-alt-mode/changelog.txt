@@ -1,6 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.0
 Date: 2025-01-13
+  Features:
+    - Draw filters on asteroid collectors
+
   Changes:
     - Attempted to get all alt-alt-mode icon scales and positions as close as possible to the vanilla alt mode counterpart
     - Entities that are not selectable will not show any icons
