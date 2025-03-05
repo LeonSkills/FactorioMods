@@ -1,0 +1,11 @@
+{
+	"name": "inserters-access-any-inventory",
+	"version": "0.0.1",
+	"factorio_version": "2.0",
+	"title": "Inserters can Access Any Inventory",
+	"author": "LeonSkills",
+	"contact": "discord: L__eon",
+	"homepage": "https://github.com/LeonSkills/FactorioMods",
+	"description": "Inserters can access any inventory of entities with multiple inventories. Daisy chain assembling machines. Insert chips, lds and rocket fuel into the rocket silo inventory. Reinsert removed modules.",
+	"dependencies": ["base >= 2.0.38"]
+}
