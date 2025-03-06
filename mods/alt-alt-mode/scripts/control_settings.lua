@@ -58,6 +58,32 @@ local function update_blacklist_setting(player)
   storage.player_entity_whitelist[player.index] = whitelist
 end
 
+local function update_blacklist_setting_individual(player)
+  if not storage.player_entity_blacklist_individual then
+    storage.player_entity_blacklist_individual = {}
+  end
+  local blacklist_string = settings.get_player_settings(player)["alt-alt-blacklist-individual"].value
+  local blacklist = {}
+  local new_blacklist_string = blacklist_string
+  for entity_name in string.gmatch(blacklist_string, "([^ *(,|;)+ *]+)") do
+    if prototypes.entity[entity_name] then
+      blacklist[entity_name] = true
+      else
+      player.print("Unknown entity name " .. entity_name)
+      new_blacklist_string = string.gsub(new_blacklist_string, entity_name, "")
+    end
+  end
+  new_blacklist_string = string.gsub(new_blacklist_string, " ", "")
+  new_blacklist_string = string.gsub(new_blacklist_string, ";", ",")
+  new_blacklist_string = string.gsub(new_blacklist_string, ",+", ",")
+  new_blacklist_string = string.gsub(new_blacklist_string, ",$", "")
+  new_blacklist_string = string.gsub(new_blacklist_string, "^,", "")
+  if blacklist_string ~= new_blacklist_string then
+    settings.get_player_settings(player)["alt-alt-blacklist-individual"] = {value = new_blacklist_string}
+  end
+  storage.player_entity_blacklist_individual[player.index] = blacklist
+end
+
 local function get_player_entity_types(player)
   if not storage.player_entity_whitelist then
     storage.player_entity_whitelist = {}
@@ -70,5 +96,6 @@ end
 
 return {
   get_player_entity_types  = get_player_entity_types,
-  update_blacklist_setting = update_blacklist_setting
+  update_blacklist_setting = update_blacklist_setting,
+  update_blacklist_setting_individual = update_blacklist_setting_individual,
 }

@@ -1155,6 +1155,12 @@ local function show_alt_info_for_entity(player, entity, item_requests)
   if entity.selection_box.left_top.y == entity.selection_box.right_bottom.y then
     return
   end
+  if not storage.player_entity_blacklist_individual then
+    storage.player_entity_blacklist_individual = {}
+  end
+  if storage.player_entity_blacklist_individual[player.index] and storage.player_entity_blacklist_individual[player.index][entity.name] then
+    return
+  end
   local type = util.get_entity_type(entity)
   if alt_functions_per_type[type] then
     alt_functions_per_type[type](player, entity, item_requests)

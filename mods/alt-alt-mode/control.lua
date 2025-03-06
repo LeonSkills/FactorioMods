@@ -84,9 +84,10 @@ local function on_setting_changed(event)
     storage.update_interval = settings.global["alt-alt-update-interval"].value
     script.on_nth_tick(storage.update_interval, on_tick)
     return
-  end
-  if event.setting == "alt-alt-blacklist" then
+  elseif event.setting == "alt-alt-blacklist" then
     control_settings.update_blacklist_setting(game.players[event.player_index])
+  elseif event.setting == "alt-alt-blacklist-individual" then
+    control_settings.update_blacklist_setting_individual(game.players[event.player_index])
   end
 end
 
