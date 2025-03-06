@@ -35,9 +35,6 @@ end
 if #new_icon_draw > 0 or #new_icon_positioning > 0 then
   print(serpent.line(new_icon_draw))
   print(serpent.line(new_icon_positioning))
-  error()
+  -- error(serpent.line(new_icon_draw) .. ", " .. serpent.line(new_icon_positioning))
 end
 
-for _, connection in pairs(data.raw.generator["steam-engine"].fluid_box.pipe_connections) do
-  print(connection.flow_direction)
-end

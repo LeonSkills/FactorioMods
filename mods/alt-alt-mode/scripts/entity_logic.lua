@@ -72,28 +72,6 @@ local function get_icons_positioning_chest_like(entity, num_items)
   return shift, scale, num_columns, num_rows, separation_multiplier, render_layer
 end
 
-local function get_box_parameters(box, num_items, max_scale)
-  max_scale = max_scale or constants.max_scale
-  if num_items == 0 then return end
-  local width = math.ceil(box.right_bottom.x - box.left_top.x)
-  local height = math.ceil(box.right_bottom.y - box.left_top.y)
-  if width <= 0 or height <= 0 then return end
-  width = math.min(width, constants.max_size)
-  height = math.min(height, constants.max_size)
-  local items_per_row, items_per_column, scale = util.fill_grid_with_largest_square(width, height, num_items)
-  if not scale then return end
-  items_per_row = math.min(items_per_row, num_items)
-  if scale < constants.min_scale then
-    scale = constants.min_scale
-    items_per_row = math.floor(width / scale)
-    items_per_column = math.floor(height / scale)
-  elseif scale > max_scale then
-    scale = max_scale
-  end
-  scale = scale * 0.8
-  return items_per_row, items_per_column, scale
-end
-
 local function get_proxy_sprites(entity, item_requests)
   if entity.type == "entity-ghost" then
     item_requests = {entity}
@@ -285,7 +263,7 @@ local function draw_fluid_wagon_contents(player, entity)
   local selection_center = util.box_center(entity.selection_box)
   local bounding_box_center = util.box_center(entity.bounding_box)
   local prototype = prototypes.fluid[fluid.name]
-  local sprite_info = { sprite = "fluid." .. fluid.name}
+  local sprite_info = {sprite = "fluid." .. fluid.name}
   local text = {right_bottom = util.localise_number(fluid.amount)}
   text.scale = 0.6
   if fluid.temperature ~= prototype.default_temperature then
@@ -298,7 +276,7 @@ local function draw_fluid_wagon_contents(player, entity)
   offset.x = shift[1] - bounding_box_center.x + selection_center.x
   offset.y = shift[2] - bounding_box_center.y + selection_center.y + 0.5 + entity.draw_data.height
   -- util.rotate_around_point(offset, {x = 0, y = 0.0}, entity.draw_data.orientation - 0.25)
-  local target = {entity = entity, offset= offset}
+  local target = {entity = entity, offset = offset}
   draw_functions.draw_sprite(player, entity, sprite_info, target, scale * 0.9, render_layer)
 end
 
@@ -919,13 +897,15 @@ local function draw_mining_drill_info(player, entity, item_requests)
       local sprite_info = {}
       if prototypes.item[filter.name] then
         sprite_info.sprite = "item." .. filter.name
-      else
+      elseif prototypes.fluid[filter.name] then
         sprite_info.sprite = "fluid." .. filter.name
       end
       if filter_mode == "blacklist" then
         sprite_info.blacklist = true
       end
-      table.insert(sprites, sprite_info)
+      if sprite_info.sprite then
+        table.insert(sprites, sprite_info)
+      end
     end
   end
   draw_chest_like(player, entity, sprites)
@@ -982,13 +962,8 @@ local function draw_mineable_info(player, entity)
   if num_items == 0 then
     return
   end
-  local items_per_row, items_per_column, scale = get_box_parameters(entity.selection_box, num_items)
-  if not scale then
-    return
-  end
-
-  local center = util.box_center(entity.selection_box)
-  for index, product in pairs(prototype.mineable_properties.products) do
+  local sprites = {}
+  for _, product in pairs(prototype.mineable_properties.products) do
     local amount = product.amount
     if not amount then
       amount = (product.amount_min + product.amount_max) / 2
@@ -997,16 +972,14 @@ local function draw_mineable_info(player, entity)
       amount = amount * product.probability
     end
     local text = {right_bottom = util.localise_number(amount)}
-    local target = draw_functions.determine_sprite_position(
-            entity, center, index, items_per_row, items_per_column, scale / 0.8, false
-    )
     local sprite_info = {
       sprite = product.type .. "." .. product.name,
       text   = text,
       -- quality = product.quality, -- products can't have quality
     }
-    draw_functions.draw_sprite(player, entity, sprite_info, target, scale)
+    table.insert(sprites, sprite_info)
   end
+  draw_chest_like(player, entity, sprites)
 end
 
 local function draw_turret_info(player, entity, item_requests, use_direction)

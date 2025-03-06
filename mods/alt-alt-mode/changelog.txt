@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.3.0
-Date: 2025-01-13
+Date: 2025-03-06
   Features:
     - Draw filters on asteroid collectors
 
@@ -8,6 +8,9 @@ Date: 2025-01-13
     - Attempted to get all alt-alt-mode icon scales and positions as close as possible to the vanilla alt mode counterpart
     - Entities that are not selectable will not show any icons
     - Cars and tanks now show their fuel instead of cargo
+
+  Bugfixes:
+    - Fixed fluid amounts <1 showing the wrong amount of fluid
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.4
 Date: 2025-01-12
