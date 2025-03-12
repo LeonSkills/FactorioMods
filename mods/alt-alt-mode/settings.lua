@@ -27,10 +27,31 @@ data:extend(
           },
           {
             type          = "bool-setting",
-            name          = "alt-alt-turn-off-completely",
+            name          = "alt-alt-toggle-off",
+            setting_type  = "runtime-per-user",
+            default_value = true,
+            order         = "alt-alt-a-c[turn-off]",
+          },
+          {
+            type          = "bool-setting",
+            name          = "alt-alt-toggle-alternative-alt-mode",
+            setting_type  = "runtime-per-user",
+            default_value = true,
+            order         = "alt-alt-a-d[turn-off]",
+          },
+          {
+            type          = "bool-setting",
+            name          = "alt-alt-toggle-vanilla-and-alternative",
             setting_type  = "runtime-per-user",
             default_value = false,
-            order         = "alt-alt-a-c[turn-off]",
+            order         = "alt-alt-a-e[turn-off]",
+          },
+          {
+            type          = "bool-setting",
+            name          = "alt-alt-toggle-vanilla",
+            setting_type  = "runtime-per-user",
+            default_value = true,
+            order         = "alt-alt-a-f[turn-off]",
           },
           {
             type          = "bool-setting",

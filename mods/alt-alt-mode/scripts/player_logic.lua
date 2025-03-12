@@ -13,7 +13,7 @@ local function show_alt_info_for_player(player, center_position)
   storage.last_known_position[player.index] = center_position
   storage["electric_network"] = nil
   draw_functions.remove_all_sprites(player)
-  if storage.alt_mode_status and storage.alt_mode_status and storage.alt_mode_status[player.index] ~= "alt-alt" then
+  if storage.alt_mode_status and storage.alt_mode_status and storage.alt_mode_status[player.index] ~= "alt-alt" and storage.alt_mode_status[player.index] ~= "both" then
     return
   end
   storage[player.index] = {}

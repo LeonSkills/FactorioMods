@@ -25,41 +25,75 @@ local function on_tick(event)
   end
 end
 
+local function cycle_alt_mode(player)
+  local player_settings = settings.get_player_settings(player)
+  local off = player_settings["alt-alt-toggle-off"].value
+  local alternative = player_settings["alt-alt-toggle-alternative-alt-mode"].value
+  local both = player_settings["alt-alt-toggle-vanilla-and-alternative"].value
+  local vanilla = player_settings["alt-alt-toggle-vanilla"].value
+  if not off and not alternative and not vanilla and not both then
+    player.print("All modes are turned off, turning off alt mode completely")
+    off = true
+  end
+  local cur_status = storage.alt_mode_status[player.index]
+  if cur_status == "off" then
+    cur_status = "alt-alt"
+    storage.alt_mode_status[player.index] = cur_status
+    if alternative then
+      player.game_view_settings.show_entity_info = false
+      draw_functions.draw_radius_indicator(player, nil, nil, 60)
+      player_logic.show_alt_info_for_player(player)
+      return
+    end
+  end
+  if cur_status == "alt-alt" then
+    cur_status = "both"
+    storage.alt_mode_status[player.index] = cur_status
+    if both then
+      player.game_view_settings.show_entity_info = true
+      draw_functions.draw_radius_indicator(player, nil, nil, 60)
+      player_logic.show_alt_info_for_player(player)
+      return
+    end
+  end
+  if cur_status == "both" then
+    cur_status = "vanilla"
+    storage.alt_mode_status[player.index] = cur_status
+    if vanilla then
+      player.game_view_settings.show_entity_info = true
+      return
+    end
+  end
+  if cur_status == "vanilla" then
+    cur_status = "off"
+    storage.alt_mode_status[player.index] = cur_status
+    if off then
+      player.game_view_settings.show_entity_info = false
+      return
+    end
+  end
+  cycle_alt_mode(player)
+end
+
 local function on_toggled_alt_mode(event)
   if not storage.alt_mode_status then
     storage.alt_mode_status = {}
   end
   local cur_status = storage.alt_mode_status[event.player_index]
   local player = game.players[event.player_index]
+
+
   if not cur_status then
     if player.game_view_settings.show_entity_info then
-      storage.alt_mode_status[event.player_index] = "on"
+      storage.alt_mode_status[event.player_index] = "vanilla"
     else
       storage.alt_mode_status[event.player_index] = "off"
-    end
-    cur_status = storage.alt_mode_status[event.player_index]
-  end
-  if cur_status == "off" then
-    draw_functions.draw_radius_indicator(player, nil, nil, 60)
-    storage.alt_mode_status[event.player_index] = "alt-alt"
-    player.game_view_settings.show_entity_info = false
-  elseif cur_status == "alt-alt" then
-    draw_functions.remove_radius_indicator(player)
-    draw_functions.remove_all_sprites(player)
-    if settings.get_player_settings(player)["alt-alt-turn-off-completely"].value then
-      storage.alt_mode_status[event.player_index] = "off"
-      player.game_view_settings.show_entity_info = false
-    else
-      storage.alt_mode_status[event.player_index] = "on"
-      player.game_view_settings.show_entity_info = true
     end
   elseif cur_status == "on" then
-    draw_functions.remove_radius_indicator(player)
-    draw_functions.remove_all_sprites(player)
-    storage.alt_mode_status[event.player_index] = "off"
-    player.game_view_settings.show_entity_info = false
+    storage.alt_mode_status[event.player_index] = "vanilla"
   end
-  player_logic.show_alt_info_for_player(game.players[event.player_index])
+  cycle_alt_mode(player)
+
 end
 
 local function on_configuration_changed(event)

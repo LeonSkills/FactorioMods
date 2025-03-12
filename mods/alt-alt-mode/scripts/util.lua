@@ -78,7 +78,9 @@ util.sort_inventory = function(inventory_contents)
       local order1 = util.get_order(s1.name, s1.type)
       local order2 = util.get_order(s2.name, s2.type)
       if order1 == order2 then
-        return prototypes.quality[s1.quality].order < prototypes.quality[s2.quality].order
+        local quality1 = s1.quality and prototypes.quality[s1.quality].order or "a"
+        local quality2 = s2.quality and prototypes.quality[s2.quality].order or "a"
+        return quality1 < quality2
       end
       return order1 < order2
     end

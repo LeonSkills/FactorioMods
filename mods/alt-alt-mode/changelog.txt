@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.2
+Date: 2025-03-12
+
+  Features:
+    - Added a mode to draw alternative alt mode on top of regular alt mode.
+
+  Bugfixes:
+    - Fixed crash when a constant combinator has an "Any Quality" signal and a signal of the same type with a regular quality in a different section.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.1
 Date: 2025-03-06
   Features:

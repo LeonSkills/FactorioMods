@@ -580,7 +580,7 @@ local function draw_arithmetic_combinator_info(player, entity)
   local control = entity.get_control_behavior()
   local parameters = control.parameters
   local x_offset = 0.30
-  local y_offset = 0.20
+  local y_offset = 0.25
   local first_signal_target = {entity = entity, offset = {x = -x_offset, y = -y_offset}}
   local second_signal_target = {entity = entity, offset = {x = x_offset, y = -y_offset}}
   local output_signal_target = {entity = entity, offset = {x = 0, y = y_offset}}
@@ -630,7 +630,7 @@ end
 local function draw_decider_combinator_info(player, entity)
   local control = entity.get_control_behavior()
   local x_offset = 0.30
-  local y_offset = 0.20
+  local y_offset = 0.25
   local first_signal_target = {entity = entity, offset = {x = -x_offset, y = -y_offset}}
   local second_signal_target = {entity = entity, offset = {x = x_offset, y = -y_offset}}
   local output_signal_target = {entity = entity, offset = {x = 0, y = y_offset}}
@@ -667,7 +667,7 @@ local function draw_selector_combinator_info(player, entity)
   local control = entity.get_control_behavior()
   local parameters = control.parameters
   local x_offset = 0.25
-  local y_offset = 0.20
+  local y_offset = 0.25
   if parameters.operation == "count" then
     local signal = parameters.count_signal
     if signal then
@@ -734,8 +734,8 @@ local function draw_constant_combinator_info(player, entity)
   for _, section in pairs(control.sections) do
     if section.active then
       for _, signal in pairs(section.filters) do
-        if signal and signal.value then
-          local quality_name = signal.value.quality and signal.value.quality or ""
+        if signal and signal.value and signal.value.quality and signal.value.comparator == "=" then
+          local quality_name = signal.value.quality
           local id = signal.value.name .. signal.value.type .. quality_name
           if signals[id] then
             signals[id].count = signals[id].count + signal.min
