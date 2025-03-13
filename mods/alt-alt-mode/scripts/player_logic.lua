@@ -23,7 +23,9 @@ local function show_alt_info_for_player(player, center_position)
   end
   local entity_types = control_settings.get_player_entity_types(player)
   if radius <= 0 and player.selected then
-    entity_logic.show_quality_icon(player, player.selected)
+    if storage.alt_mode_status[player.index] == "alt-alt" then
+      entity_logic.show_quality_icon(player, player.selected)
+    end
     if not util.contains(entity_types, player.selected.type) then return end
     local item_requests = {}
     for _, proxy in pairs(player.surface.find_entities_filtered {type = "item-request-proxy", area=player.selected.selection_box, force = player.force}) do
@@ -49,7 +51,7 @@ local function show_alt_info_for_player(player, center_position)
       end
     end
     for _, entity in pairs(player.surface.find_entities_filtered {position = center_position, radius = radius, quality={quality="normal", comparator=">"}}) do
-      if entity and entity.valid then
+      if entity and entity.valid and storage.alt_mode_status[player.index] == "alt-alt" then
         entity_logic.show_quality_icon(player, entity)
       end
     end

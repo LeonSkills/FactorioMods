@@ -1,9 +1,9 @@
 local util = require("__alt-alt-mode__/scripts/util.lua")
 local draw_functions = require("__alt-alt-mode__/scripts/draw_functions")
-local constants = require("__alt-alt-mode__/scripts/constants")
 local circuit_network = require("__alt-alt-mode__/scripts/circuit_network")
 local icon_draw_specification = require("__alt-alt-mode__/scripts/icon_draw_specification")
 local icons_positioning = require("__alt-alt-mode__/scripts/icons_positioning")
+local quality_positioning = require("__alt-alt-mode__/scripts/quality_positioning")
 
 local function get_draw_specification(entity)
   -- see https://forums.factorio.com/viewtopic.php?f=28&t=125562&p=658621
@@ -1122,14 +1122,23 @@ table.insert(supported_types, "entity-ghost")
 local function show_quality_icon(player, entity)
   -- quality
   if entity.quality and entity.quality.draw_sprite_by_default then
+    local shift = {x = 0, y = 0}
+    local scale
+    if quality_positioning[entity.name] then
+      shift = quality_positioning[entity.name].quality_indicator_shift or shift
+      scale = quality_positioning[entity.name].quality_indicator_scale
+    end
     local box = entity.selection_box
     local center = util.box_center(box)
-    center.x = center.x - entity.position.x
-    center.y = center.y - entity.position.y
     local left_bottom = {x = box.left_top.x - entity.position.x, y = box.right_bottom.y - entity.position.y}
-    local scale = math.min(box.right_bottom.x - box.left_top.x, box.right_bottom.y - box.left_top.y) / 7
-    scale = math.max(scale, 0.25)
-    local offset = {x = left_bottom.x + scale / 2, y = left_bottom.y - scale / 2}
+    if not scale then
+      center.x = center.x - entity.position.x
+      center.y = center.y - entity.position.y
+      scale = math.min(math.ceil(box.right_bottom.x - box.left_top.x), math.ceil(box.right_bottom.y - box.left_top.y)) / 3
+      scale = math.max(math.min(scale, 1), 0.5)
+    end
+    scale = scale / 2
+    local offset = {x = left_bottom.x + scale / 2 + shift.x, y = left_bottom.y - scale / 2 + shift.y}
     if entity.train and entity.orientation ~= 0 then
       util.rotate_around_point(offset, center, entity.orientation)
     end

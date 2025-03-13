@@ -425,5 +425,14 @@ return {
     scale          = 1.5,
     scale_for_many = 2.5,
     shift          = {0, 0.3},
-  }
+  },
+  ["rci-rocketizer"]                            = {
+    scale = 0.7
+  },
+  ["proxy-container"]                           = {
+    scale = 0.7
+  },
+  ["ii-proxy-container"]                        = {
+    scale = 0.7
+  },
 }
