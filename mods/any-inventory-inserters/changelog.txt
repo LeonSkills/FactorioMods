@@ -1,0 +1,13 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2025-03-06
+  Info:
+    - Initial release
+
+  Major Features:
+    - Inserters can be configured to change the inventory they are taking from or inserting into
+
+  Features:
+    - Target inventories can be copy-pasted to other inserters
+    - Target inventories are saved in blueprints
+    - Target inventories are saved in the undo-redo-queue
