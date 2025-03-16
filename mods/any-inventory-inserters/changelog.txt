@@ -1,6 +1,16 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.1.0
-Date: 2025-03-06
+Version: 0.0.3
+Date: 2025-03-16
+  Bugfixes:
+    - Fixed a bug where killed inserters did not retain their target inventories when turned into ghosts
+---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 2025-03-16
+  Bugfixes:
+    - Fixed crash when undo stack was empty
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 2025-03-16
   Info:
     - Initial release
 
@@ -11,3 +21,4 @@ Date: 2025-03-06
     - Target inventories can be copy-pasted to other inserters
     - Target inventories are saved in blueprints
     - Target inventories are saved in the undo-redo-queue
+---------------------------------------------------------------------------------------------------

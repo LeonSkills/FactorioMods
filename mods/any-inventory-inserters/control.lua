@@ -25,20 +25,22 @@ local function on_tick(event)
   if storage.fix_undo_stack then
     for _, info in pairs(storage.fix_undo_stack) do
       local player = game.players[info.player_index]
-      local undo_items = player.undo_redo_stack.get_undo_item(1)
-      for item_index, undo_item in pairs(undo_items) do
-        if (undo_item.target
-                and undo_item.type == "removed-entity"
-                and undo_item.target.position
-                and undo_item.target.position.x == info.position.x
-                and undo_item.target.position.y == info.position.y
-                and (undo_item.target.direction or 0) == info.direction
-                and undo_item.target.name == info.name
-                and undo_item.surface_index == info.surface_index
-        )
-        then
-          player.undo_redo_stack.set_undo_tag(1, item_index, "pickup_inventory", info.pickup_inventory)
-          player.undo_redo_stack.set_undo_tag(1, item_index, "drop_inventory", info.drop_inventory)
+      if player.undo_redo_stack.get_undo_item_count() > 0 then
+        local undo_items = player.undo_redo_stack.get_undo_item(1)
+        for item_index, undo_item in pairs(undo_items) do
+          if (undo_item.target
+                  and undo_item.type == "removed-entity"
+                  and undo_item.target.position
+                  and undo_item.target.position.x == info.position.x
+                  and undo_item.target.position.y == info.position.y
+                  and (undo_item.target.direction or 0) == info.direction
+                  and undo_item.target.name == info.name
+                  and undo_item.surface_index == info.surface_index
+          )
+          then
+            player.undo_redo_stack.set_undo_tag(1, item_index, "pickup_inventory", info.pickup_inventory)
+            player.undo_redo_stack.set_undo_tag(1, item_index, "drop_inventory", info.drop_inventory)
+          end
         end
       end
     end
@@ -132,7 +134,7 @@ local function on_entity_removed(event)
     local proxies = entity.surface.find_entities_filtered {name = "ii-proxy-container", area = area}
     for _, proxy in pairs(proxies) do
       local proxy_info = storage.proxy_containers[proxy.unit_number]
-      if proxy_info then
+      if proxy_info and proxy_info.inserter and proxy_info.inserter.valid then
         local inserter_info = storage.inventory_inserters[util.get_entity_id(proxy_info.inserter)]
         if inserter_info then
           inserter_info[proxy_info.type].main_target = nil
@@ -145,6 +147,20 @@ local function on_entity_removed(event)
       end
     end
   end
+end
+
+local function on_post_entity_died(event)
+  local entity = event.ghost
+  if not entity or entity.ghost_type ~= "inserter" then return end
+  local id = util.get_entity_id(entity)
+  local info = storage.inventory_inserters[id]
+  if not info then return end
+  entity.tags = {
+    pickup_inventory = info.pickup.inventory,
+    drop_inventory   = info.drop.inventory,
+  }
+  inserter_logic.set_inserter_inventory(entity, entity.tags.pickup_inventory, "pickup")
+  inserter_logic.set_inserter_inventory(entity, entity.tags.drop_inventory, "drop")
 end
 
 local function on_entity_settings_pasted(event)
@@ -211,7 +227,9 @@ script.on_event(defines.events.on_player_rotated_entity, on_entity_changed)
 script.on_event(defines.events.script_raised_teleported, on_entity_changed)
 --
 script.on_event(defines.events.on_player_setup_blueprint, on_player_setup_blueprint)
-script.on_event(defines.events.on_undo_applied, on_undo_applied)
+--
+script.on_event(defines.events.on_post_entity_died, on_post_entity_died)
+
 --
 script.on_event(defines.events.on_tick, on_tick)
 script.on_nth_tick(123456, purge_inactive_chests)

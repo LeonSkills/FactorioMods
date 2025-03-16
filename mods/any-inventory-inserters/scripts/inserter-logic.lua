@@ -101,6 +101,7 @@ inserter_logic.set_inserter_inventory = function(inserter, inventory, target_typ
   if not storage.inventory_inserters[id] then
     storage.inventory_inserters[id] = {inserter = inserter, pickup = {}, drop = {}}
   end
+  storage.inventory_inserters[id].inserter = inserter
   local info = storage.inventory_inserters[id][target_type]
   if not inventory and info.proxy then
     inserter_logic.destroy_proxy_container(info.proxy)
