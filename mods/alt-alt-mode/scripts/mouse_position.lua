@@ -51,12 +51,13 @@ local function subdivide(player, position, size)
     for _, y in pairs({-pow_size, 0, pow_size}) do
       -- util.log("Create entity at ", x, y, "with size", size)
       local entity = player.surface.create_entity {
-        name                = "alt-alt-invisible-selectable-" .. size,
-        position            = {position.x + x, position.y + y},
-        force               = "neutral",
-        player              = player,
-        raise_built         = false,
-        render_player_index = player.index
+        name                        = "alt-alt-invisible-selectable-" .. size,
+        position                    = {position.x + x, position.y + y},
+        force                       = "neutral",
+        player                      = player,
+        raise_built                 = false,
+        render_player_index         = player.index,
+        preserve_ghosts_and_corpses = true
       }
       entity.destructible = false
       set_entity(player, entity)
