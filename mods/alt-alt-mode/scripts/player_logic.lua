@@ -45,7 +45,11 @@ local function show_alt_info_for_player(player, center_position)
         table.insert(proxies[target_id], proxy)
       end
     end
-    for _, entity in pairs(player.surface.find_entities_filtered {type = entity_types, position = center_position, radius = radius, force = {player.force, "neutral"}}) do
+    local validForces = { player.force, "neutral" }
+    if game.forces[player.force.name .. ".unapproved_ghosts"] then
+      table.insert(validForces, player.force.name .. ".unapproved_ghosts")
+    end
+    for _, entity in pairs(player.surface.find_entities_filtered { type = entity_types, position = center_position, radius = radius, force = validForces }) do
       if entity and entity.valid then
         entity_logic.show_alt_info_for_entity(player, entity, proxies[entity.unit_number])
       end
