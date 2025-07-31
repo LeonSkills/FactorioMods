@@ -1,11 +1,11 @@
 {
 	"name": "segmented-units-territory-renderings",
-	"version": "0.3.3",
+	"version": "0.0.2",
 	"factorio_version": "2.0",
 	"title": "Show Demolisher Territory on Surface",
 	"author": "LeonSkills",
 	"contact": "discord: L__eon",
 	"homepage": "https://github.com/LeonSkills/FactorioMods",
 	"description": "Draws the territory of demolishers on the game surface when ALT mode is enabled.",
-	"dependencies": ["base >= 2.0.0"]
+	"dependencies": ["base >= 2.0.61"]
 }
