@@ -54,6 +54,8 @@ local supported_types = {
   ["mining-drill"]       = {
     {},
     {display = {"iaai.modules"}, inventory = defines.inventory.mining_drill_modules},
+    {display = {"iaai.fuel"}, inventory = defines.inventory.fuel},
+    {display = {"iaai.burnt-result"}, inventory = defines.inventory.burnt_result},
   },
 }
 

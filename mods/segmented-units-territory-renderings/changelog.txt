@@ -1,0 +1,8 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 2025-07-31
+
+  Features:
+    - Draw demolisher (and other segmented units) territories on the surface in regular game view with alt mode enabled
+    - Added a setting to also show the territory with alt mode disabled.
+---------------------------------------------------------------------------------------------------

@@ -16,6 +16,7 @@ else
     flags                   = {"not-on-map", "not-deconstructable", "not-blueprintable"},
     hidden                  = true,
     hidden_in_factoriopedia = true,
+    minable                 = nil,
     selection_box           = nil,
     collision_box           = {{-0.4, -0.4}, {0.4, 0.4}},
     collision_mask          = {
