@@ -76,6 +76,12 @@ local function find_mouse(player)
   if not selected then
     return false
   end -- check if it's our object, if so continue subdividing
+  if player.cursor_stack and player.cursor_stack.valid and player.cursor_stack.valid_for_read and player.cursor_stack.prototype.place_result and player.cursor_stack.prototype.place_result.type == "ammo-turret" then
+    return false
+  end
+  if player.cursor_ghost and player.cursor_ghost.name.place_result and player.cursor_ghost.name.place_result.type == "ammo-turret" then
+    return false
+  end
   if string.starts(selected.name, "alt-alt-invisible-selectable-") then
     local size = tonumber(string.sub(selected.name, -1))
     if size == 0 then

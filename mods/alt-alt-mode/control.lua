@@ -8,7 +8,6 @@ local control_settings = require("__alt-alt-mode__/scripts/control_settings")
 
 local function on_selected_entity_changed(event)
   local player = game.players[event.player_index]
-  -- util.log("Entity changed", player.selected and player.selected.name)
   local mouse_position = mouse.find_mouse(player)
   if mouse_position then
     player_logic.show_alt_info_for_player(player, mouse_position)
