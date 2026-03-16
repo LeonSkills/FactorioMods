@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.4.0
+Date: 2026-03-16
+
+  Features:
+    - Modded entities now use the prototype's icon draw specifications instead of the mod guessing them.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.5
 Date: 2026-03-16
 

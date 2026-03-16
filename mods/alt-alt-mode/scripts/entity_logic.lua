@@ -7,12 +7,12 @@ local quality_positioning = require("__alt-alt-mode__/scripts/quality_positionin
 
 local function get_draw_specification(entity)
   -- see https://forums.factorio.com/viewtopic.php?f=28&t=125562&p=658621
-  local spec = icon_draw_specification[util.get_entity_name(entity)] or icon_draw_specification[util.get_entity_type(entity)]
-  spec = spec or {}
-  local scale = spec.scale or 1
-  local shift = spec.shift or {0, 0}
-  local render_layer = spec.render_layer or "entity-info-icon"
-  local scale_for_many = spec.scale_for_many or 1
+  local custom_specification = icon_draw_specification[util.get_entity_name(entity)] or icon_draw_specification[util.get_entity_type(entity)] or {}
+  local actual_spec = entity.prototype.icon_draw_specification or {}
+  local scale = custom_specification.scale or actual_spec.scale or 1
+  local shift = custom_specification.shift or actual_spec.shift or {0, 0}
+  local render_layer = custom_specification.render_layer or actual_spec.render_layer or "entity-info-icon"
+  local scale_for_many = custom_specification.scale_for_many or actual_spec.scale_for_many or 1
   if render_layer == "entity-info-icon-below" then
     render_layer = "entity-info-icon"
   end
