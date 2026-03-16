@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.3.5
+Date: 2026-03-16
+
+  Changes:
+    - Removed robots from default blacklist
+
+  Bugfixes:
+    - Fixed quality icon of robots jumping all over the place
+---------------------------------------------------------------------------------------------------
 Version: 0.3.4
 Date: 2026-03-16
 

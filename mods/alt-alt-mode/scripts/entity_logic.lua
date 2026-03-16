@@ -1128,12 +1128,13 @@ local function show_quality_icon(player, entity)
       shift = quality_positioning[entity.name].quality_indicator_shift or shift
       scale = quality_positioning[entity.name].quality_indicator_scale
     end
-    local box = entity.selection_box
+    local box = entity.prototype.selection_box
     local center = util.box_center(box)
-    local left_bottom = {x = box.left_top.x - entity.position.x, y = box.right_bottom.y - entity.position.y}
+    -- local left_bottom = {x = box.left_top.x - entity.position.x, y = box.right_bottom.y - entity.position.y}
+    local left_bottom = {x = box.left_top.x, y = box.right_bottom.y}
     if not scale then
-      center.x = center.x - entity.position.x
-      center.y = center.y - entity.position.y
+      -- center.x = center.x - entity.position.x
+      -- center.y = center.y - entity.position.y
       scale = math.min(math.ceil(box.right_bottom.x - box.left_top.x), math.ceil(box.right_bottom.y - box.left_top.y)) / 3
       scale = math.max(math.min(scale, 1), 0.5)
     end

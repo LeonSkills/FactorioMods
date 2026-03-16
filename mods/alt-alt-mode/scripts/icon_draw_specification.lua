@@ -230,7 +230,7 @@ return {
     scale        = 0.5,
     shift        = {
       0,
-      -0.2
+      -1
     }
   },
   ["logistic-robot"]                            = {
@@ -238,7 +238,7 @@ return {
     scale        = 0.5,
     shift        = {
       0,
-      -0.2
+      -1
     }
   },
   ["arithmetic-combinator"]                     = {
